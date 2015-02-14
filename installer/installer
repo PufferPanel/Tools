@@ -9,6 +9,7 @@ usedev=false
 installpath="PufferPanel"
 webuser="apache"
 test=false
+skiplang=false
 
 #This is a helper function to allow for less repetition of command checks
 function checkInstall {
@@ -23,18 +24,17 @@ function checkInstall {
 function validateCommand {
     if [ $? -ne 0 ]; then
         echo -e "${red}An error occured while installing, halting${normal}";
-        cd $DIR
         revertInstall
         exit
     fi
 }
 
 function revertInstall {
-    cd $DIR;
+    cd $DIR
     rm -rf ${installpath}
 }
 
-while getopts "h?dptu:" opt; do
+while getopts "h?dptus:" opt; do
     case "$opt" in
     d)  
         usedev=true
@@ -54,8 +54,11 @@ while getopts "h?dptu:" opt; do
         echo "-d        | If set, will install the latest dev version of the panel"
         echo "-u [user] | Sets the user/group owner of the panel files" 
         echo "-t        | Checks if the depedencies are installed without installing panel"
+        echo "-s        | Skips language building"
         exit;
         ;;
+    s) 
+        skiplang=true
     esac
 done
 
@@ -68,6 +71,7 @@ echo "------"
 echo "Install path: ${installpath}"
 echo "Using dev: ${usedev}"
 echo "Testing only: ${test}"
+echo "Skipping languages: ${skiplang}"
 echo "------"
 echo "Checking dependencies:"
 
@@ -176,7 +180,7 @@ git clone https://github.com/PufferPanel/PufferPanel.git ${installpath}
 validateCommand
 
 echo "-----"
-cd PufferPanel
+cd $installpath
 ppversion=$(git describe --abbrev=0 --tags)
 if ${usedev}; then 
     echo "Using dev version"
@@ -192,27 +196,33 @@ curl -sS https://getcomposer.org/installer | php
 validateCommand
 php composer.phar install
 validateCommand
-cd ..
 
 echo "-----"
 echo "Installing database"
-php -f PufferPanel/install/install.php mysqlHost=${mysqlhost} mysqlUser=${mysqluser} mysqlPass=${mysqlpass} companyName=${companyName} siteUrl=${siteurl} adminName=${adminname} adminEmail=${adminemail} adminPass=${adminpass}
+php -f install/install.php mysqlHost=${mysqlhost} mysqlUser=${mysqluser} mysqlPass=${mysqlpass} companyName=${companyname} siteUrl=${siteurl} adminName=${adminname} adminEmail=${adminemail} adminPass=${adminpass}
 if [ $? -ne 0 ]; then
     echo -e "${red}An error occured while installing, halting${normal}";
-    cd $DIR
     revertInstall
     mysql -h ${mysqlhost} -u ${mysqluser} -p${mysqlpass} -e "DROP DATABASE IF EXISTS pufferpanel"
     exit
 fi
 
 echo "-----"
+if $skiplang; then
+    echo "Skipping language building"
+else
+    echo "Building language files"
+    curl -sS https://raw.githubusercontent.com/PufferPanel/Tools/master/language/language-builder | bash -s -- -d ${installPath}
+fi
+
+echo "-----"
 echo "Finishing install"
-chmod -R 774 PufferPanel/src/cache
+chmod -R 774 ${installpath}/src/cache
 
 getent passwd ${webuser} > /dev/null
 if [ $? -eq 0 ]; then
   echo "Chowning files to ${webuser} user"
-  chown -R ${webuser}:${webuser} PufferPanel
+  chown -R ${webuser}:${webuser} $installpath
   if [ $? -ne 0 ]; then
     echo "${red}Could not chown to ${webuser}, please do this manually${normal}"
   fi
@@ -221,4 +231,4 @@ else
 fi
 
 echo -e "${green}PufferPanel has installed successfully."
-echo -e "If the above chown is not the correct user or did not work, please manually chown the PufferPanel folder${normal}"
+echo -e "If the above chown is not the correct user or did not work, please manually chown the $installpath folder${normal}"
