@@ -5,6 +5,11 @@ green="\e[0;32m"
 normal="\e[0m"
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
+usedev=false
+installpath="PufferPanel"
+webuser="apache"
+test=false
+
 #This is a helper function to allow for less repetition of command checks
 function checkInstall {
     if type "$1" 1>/dev/null 2>&1; then
@@ -26,52 +31,102 @@ function validateCommand {
 
 function revertInstall {
     cd $DIR;
-    rm -rf PufferPanel/
+    rm -rf ${installpath}
 }
 
+while getopts "h?dptu:" opt; do
+    case "$opt" in
+    d)  
+        usedev=true
+        ;;
+    p)  
+        installpath=$OPTARG
+        ;;
+    u)
+        webuser=$OPTARG
+        ;;
+    t) 
+        test=true
+        ;;
+    h)
+        echo "PufferPanel Installer - Version $version"
+        echo "Optional parameters: "
+        echo "-d        | If set, will install the latest dev version of the panel"
+        echo "-u [user] | Sets the user/group owner of the panel files" 
+        echo "-t        | Checks if the depedencies are installed without installing panel"
+        exit;
+        ;;
+    esac
+done
+
+shift $((OPTIND-1))
+
+[ "$1" = "--" ] && shift
+
 echo "PufferPanel Installer - Version $version"
+echo "------"
+echo "Install path: ${installpath}"
+echo "Using dev: ${usedev}"
+echo "Testing only: ${test}"
 echo "------"
 echo "Checking dependencies:"
 
 canInstall=true
 
-#Check if Git is installed
-checkInstall git Git
-
 #Check if PHP is installed
 checkInstall php PHP
+
+if $canInstall; then
+    phpInstalled=true
+else 
+    phpInstalled=false
+fi
+
+#Check if Git is installed
+checkInstall git Git
 
 #Check if MySQL is installed
 checkInstall mysql MySQL-client
 
 #Check if PHP depedencies are installed
-result=$(php -r 'exit (version_compare(PHP_VERSION, "5.5.0") < 0 ? "1" : "0");');
-if [ "$result" -eq "0" ]; then
-    echo -e "PHP 5.5.0+: [${green}Installed${normal}]";
-else
-    echo -e "PHP 5.5.0+: [${red}Not Installed${normal}]";
-    canInstall=false
-fi
-extensions=("curl" "hash" "openssl" "mcrypt" "pdo" "pdo_mysql")
-for i in ${extensions[@]}; do
-    phpcmd=`php <<EOF
-<?php exit (extension_loaded("${i}") ? "1" : "0"); ?> 
-EOF`
-    result=$phpcmd;
-    if [ "$result" -ne "0" ]; then
-        echo -e "PHP-${i}: [${green}Installed${normal}]";
+if $phpInstalled; then
+    result=$(php -r 'exit (version_compare(PHP_VERSION, "5.5.0") < 0 ? "1" : "0");');
+    if [ "$result" -eq "0" ]; then
+        echo -e "PHP 5.5.0+: [${green}Installed${normal}]";
     else
-        echo -e "PHP-${i}: [${red}Not Installed${normal}]";
+        echo -e "PHP 5.5.0+: [${red}Not Installed${normal}]";
         canInstall=false
     fi
-done
+
+    extensions=("curl" "hash" "openssl" "mcrypt" "pdo" "pdo_mysql")
+    for i in ${extensions[@]}; do
+        phpcmd=`php <<EOF
+<?php exit (extension_loaded("${i}") ? "1" : "0"); ?> 
+EOF`
+        result=$phpcmd;
+        if [ "$result" -ne "0" ]; then
+            echo -e "PHP-${i}: [${green}Installed${normal}]";
+        else
+            echo -e "PHP-${i}: [${red}Not Installed${normal}]";
+            canInstall=false
+        fi
+    done
+else
+    echo "Since PHP-cli is not installed, assuming no extensions are installed"
+    canInstall=false
+fi
 
 echo "------"
 
 if ${canInstall}; then
-    echo "All dependencies are installed, processing with installation";
+    if ${test}; then
+        echo -e "${green}All dependencies are validated${normal}"
+        exit;
+    else 
+        echo -e "${green}All dependencies are installed, processing with installation${normal}";
+    fi
 else
-    echo "Please insure all dependencies are installed";
+    echo -e "${red}Please ensure all dependencies are installed${normal}";
     exit;
 fi
 
@@ -115,17 +170,21 @@ echo "-----"
 echo -e "${green}Configuration options complete, beginning installation process${normal}"
 
 echo "-----"
-echo "Cloning PufferPanel"
+echo "Cloning PufferPanel to ${installpath}"
 
-git clone https://github.com/PufferPanel/PufferPanel.git
+git clone https://github.com/PufferPanel/PufferPanel.git ${installpath}
 validateCommand
 
 echo "-----"
 cd PufferPanel
 ppversion=$(git describe --abbrev=0 --tags)
-echo "Checking out ${ppversion}"
-git checkout tags/${ppversion}
-validateCommand
+if ${usedev}; then 
+    echo "Using dev version"
+else
+    echo "Checking out ${ppversion}"
+    git checkout tags/${ppversion}
+    validateCommand
+fi
 
 echo "-----"
 echo "Installing Composer"
@@ -150,15 +209,15 @@ echo "-----"
 echo "Finishing install"
 chmod -R 774 PufferPanel/src/cache
 
-getent passwd apache > /dev/null
+getent passwd ${webuser} > /dev/null
 if [ $? -eq 0 ]; then
-  echo "Chowning files to Apache user"
-  chown -R apache:apache PufferPanel
+  echo "Chowning files to ${webuser} user"
+  chown -R ${webuser}:${webuser} PufferPanel
   if [ $? -ne 0 ]; then
-    echo "${red}Could not chown to Apache, please do this manually${normal}"
+    echo "${red}Could not chown to ${webuser}, please do this manually${normal}"
   fi
 else
-  echo "${red}Apache user not found, cannot chown to correct user${normal}"
+  echo "${red}${webuser} user not found, cannot chown to correct user${normal}"
 fi
 
 echo -e "${green}PufferPanel has installed successfully."
