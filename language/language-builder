@@ -32,8 +32,21 @@ echo $divider
 echo "Generating language files"
 for f in $rawPath
 do
+    filename=$(basedir $f .txt)
     echo "Building ${f}"
-    #execute builder here
+    php <<EOF
+<?php
+    $content = file('${rawPath}${f}.txt');
+    $json = array();
+    foreach($content as $line => $string){
+        list($id, $lang) = explode(",", $string, 2);
+        $json = array_merge($json, array(strtolower($id) => trim($lang)));
+    }
+    $fp = fopen('${outputPath}${f}.json', 'w+');
+    fwrite($fp, json_encode($json, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+    fclose($fp);
+?>
+EOF
 done
 
 echo $divider
