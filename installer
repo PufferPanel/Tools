@@ -1,0 +1,165 @@
+#!/bin/bash
+version=0.1
+red="\e[0;31m"
+green="\e[0;32m"
+normal="\e[0m"
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+#This is a helper function to allow for less repetition of command checks
+function checkInstall {
+    if type "$1" 1>/dev/null 2>&1; then
+        echo -e "$2: [${green}Installed${normal}]";
+    else
+        echo -e "$2: [${red}Not Installed${normal}]";
+        canInstall=false
+    fi
+}
+
+function validateCommand {
+    if [ $? -ne 0 ]; then
+        echo -e "${red}An error occured while installing, halting${normal}";
+        cd $DIR
+        revertInstall
+        exit
+    fi
+}
+
+function revertInstall {
+    cd $DIR;
+    rm -rf PufferPanel/
+}
+
+echo "PufferPanel Installer - Version $version"
+echo "------"
+echo "Checking dependencies:"
+
+canInstall=true
+
+#Check if Git is installed
+checkInstall git Git
+
+#Check if PHP is installed
+checkInstall php PHP
+
+#Check if MySQL is installed
+checkInstall mysql MySQL-client
+
+#Check if PHP depedencies are installed
+result=$(php -r 'exit (version_compare(PHP_VERSION, "5.5.0") < 0 ? "1" : "0");');
+if [ "$result" -eq "0" ]; then
+    echo -e "PHP 5.5.0+: [${green}Installed${normal}]";
+else
+    echo -e "PHP 5.5.0+: [${red}Not Installed${normal}]";
+    canInstall=false
+fi
+extensions=("curl" "hash" "openssl" "mcrypt" "pdo" "pdo_mysql")
+for i in ${extensions[@]}; do
+    phpcmd=`php <<EOF
+<?php exit (extension_loaded("${i}") ? "1" : "0"); ?> 
+EOF`
+    result=$phpcmd;
+    if [ "$result" -ne "0" ]; then
+        echo -e "PHP-${i}: [${green}Installed${normal}]";
+    else
+        echo -e "PHP-${i}: [${red}Not Installed${normal}]";
+        canInstall=false
+    fi
+done
+
+echo "------"
+
+if ${canInstall}; then
+    echo "All dependencies are installed, processing with installation";
+else
+    echo "Please insure all dependencies are installed";
+    exit;
+fi
+
+echo "-----"
+echo "Preparing MySQL connection"
+echo -e "${red}For this step, please use either root or an account with database creation and GRANT${normal}"
+echo -n "MySQL Host: "
+read mysqlhost
+echo -n "MySQL Username: "
+read mysqluser
+notValid=true
+while ${notValid}; do
+    echo -n "MySQL Password: "
+    read -s mysqlpass
+    if mysql -h ${mysqlhost} -u ${mysqluser} -p${mysqlpass} -e "exit"; then 
+        notValid=false
+    else 
+        echo "${red}Database connection could not be established${normal}"
+    fi
+done;
+
+echo ""
+echo "-----"
+echo "Preparing Site configuration"
+echo -n "Enter company name: "
+read companyname
+echo -n "Enter site url: "
+read siteurl
+
+echo "-----"
+echo "Preparing admin account"
+echo -n "Username: "
+read adminname
+echo -n "Email: "
+read adminemail
+echo -n "Password: "
+read -s adminpass
+echo ""
+
+echo "-----"
+echo -e "${green}Configuration options complete, beginning installation process${normal}"
+
+echo "-----"
+echo "Cloning PufferPanel"
+
+git clone https://github.com/PufferPanel/PufferPanel.git
+validateCommand
+
+echo "-----"
+cd PufferPanel
+ppversion=$(git describe --abbrev=0 --tags)
+echo "Checking out ${ppversion}"
+git checkout tags/${ppversion}
+validateCommand
+
+echo "-----"
+echo "Installing Composer"
+curl -sS https://getcomposer.org/installer | php
+validateCommand
+php composer.phar install
+validateCommand
+cd ..
+
+echo "-----"
+echo "Installing database"
+php -f PufferPanel/install/install.php mysqlHost=${mysqlhost} mysqlUser=${mysqluser} mysqlPass=${mysqlpass} companyName=${companyName} siteUrl=${siteurl} adminName=${adminname} adminEmail=${adminemail} adminPass=${adminpass}
+if [ $? -ne 0 ]; then
+    echo -e "${red}An error occured while installing, halting${normal}";
+    cd $DIR
+    revertInstall
+    mysql -h ${mysqlhost} -u ${mysqluser} -p${mysqlpass} -e "DROP DATABASE IF EXISTS pufferpanel"
+    exit
+fi
+
+echo "-----"
+echo "Finishing install"
+chmod -R 774 PufferPanel/src/cache
+
+getent passwd apache > /dev/null
+if [ $? -eq 0 ]; then
+  echo "Chowning files to Apache user"
+  chown -R apache:apache PufferPanel
+  if [ $? -ne 0 ]; then
+    echo "${red}Could not chown to Apache, please do this manually${normal}"
+  fi
+else
+  echo "${red}Apache user not found, cannot chown to correct user${normal}"
+fi
+
+echo -e "${green}PufferPanel has installed successfully."
+echo -e "If the above chown is not the correct user or did not work, please manually chown the PufferPanel folder${normal}"
