@@ -212,7 +212,7 @@ if $skiplang; then
     echo "Skipping language building"
 else
     echo "Building language files"
-    curl -sS https://raw.githubusercontent.com/PufferPanel/Tools/master/language/language-builder | bash -s -- -d ${installPath}
+    curl -sS https://raw.githubusercontent.com/PufferPanel/Tools/master/language/language-builder | bash -s -- -dp ${installpath}
 fi
 
 echo "-----"
@@ -224,10 +224,10 @@ if [ $? -eq 0 ]; then
   echo "Chowning files to ${webuser} user"
   chown -R ${webuser}:${webuser} $installpath
   if [ $? -ne 0 ]; then
-    echo "${red}Could not chown to ${webuser}, please do this manually${normal}"
+    echo -e "${red}Could not chown to ${webuser}, please do this manually${normal}"
   fi
 else
-  echo "${red}${webuser} user not found, cannot chown to correct user${normal}"
+  echo -e "${red}${webuser} user not found, cannot chown to correct user${normal}"
 fi
 
 echo -e "${green}PufferPanel has installed successfully."
