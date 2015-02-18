@@ -217,7 +217,6 @@ fi
 
 echo "-----"
 echo "Finishing install"
-mkdir src/cache
 chmod -R 774 src/cache
 
 getent passwd ${webuser} > /dev/null
