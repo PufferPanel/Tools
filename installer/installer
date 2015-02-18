@@ -212,7 +212,7 @@ if $skiplang; then
     echo "Skipping language building"
 else
     echo "Building language files"
-    curl -sS https://raw.githubusercontent.com/PufferPanel/Tools/master/language/language-builder | bash -s -- -dp ${installpath}
+    curl -sS https://raw.githubusercontent.com/PufferPanel/Tools/master/language/language-builder | bash -s -- -p ${installpath}
 fi
 
 echo "-----"
