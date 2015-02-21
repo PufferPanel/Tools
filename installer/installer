@@ -182,7 +182,8 @@ validateCommand
 echo "-----"
 cd $installpath
 ppversion=$(git describe --abbrev=0 --tags)
-if ${usedev}; then 
+if ${usedev}; then
+    ppversion="master"
     echo "Using dev version"
 else
     echo "Checking out ${ppversion}"
@@ -197,9 +198,15 @@ validateCommand
 php composer.phar install
 validateCommand
 
+cd $DIR
+
 echo "-----"
-echo "Installing database"
-php -f install/install.php mysqlHost="$mysqlhost" mysqlUser="$mysqluser" mysqlPass="$mysqlpass" companyName="$companyname" siteUrl="$siteurl" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass"
+echo "Executing panel version installer"
+
+installFile=$(mktemp -t XXXXX.php);
+curl -o $installFile https://raw.githubusercontent.com/PufferPanel/Tools/master/installer/versions/${ppversion}.php
+
+php -f $installFile mysqlHost="$mysqlhost" mysqlUser="$mysqluser" mysqlPass="$mysqlpass" companyName="$companyname" siteUrl="$siteurl" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass" installDir="$installpath"
 if [ $? -ne 0 ]; then
     echo -e "${red}An error occured while installing, halting${normal}";
     revertInstall
@@ -212,25 +219,23 @@ if $skiplang; then
     echo "Skipping language building"
 else
     echo "Building language files"
-    curl -sS https://raw.githubusercontent.com/PufferPanel/Tools/master/language/language-builder | bash -s -- -p .
+    curl -sS https://raw.githubusercontent.com/PufferPanel/Tools/master/language/language-builder | bash -s -- -p "$installpath"
 fi
 
 echo "-----"
 echo "Finishing install"
-chmod -R 774 src/cache
+chmod -R 774 $installpath/src/cache
 
 getent passwd ${webuser} > /dev/null
 if [ $? -eq 0 ]; then
   echo "Chowning files to ${webuser} user"
-  chown -R ${webuser}:${webuser} .
+  chown -R ${webuser}:${webuser} $installpath
   if [ $? -ne 0 ]; then
     echo -e "${red}Could not chown to ${webuser}, please do this manually${normal}"
   fi
 else
   echo -e "${red}${webuser} user not found, cannot chown to correct user${normal}"
 fi
-
-cd $DIR
 
 echo -e "${green}PufferPanel has installed successfully."
 echo -e "If the above chown is not the correct user or did not work, please manually chown the $installpath folder${normal}"
