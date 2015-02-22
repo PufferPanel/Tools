@@ -204,7 +204,7 @@ echo "-----"
 echo "Executing panel version installer"
 
 installFile=$(mktemp -t XXXXX.php);
-curl -o $installFile https://raw.githubusercontent.com/PufferPanel/Tools/master/installer/versions/${ppversion}.php
+curl -osS $installFile https://raw.githubusercontent.com/PufferPanel/Tools/master/installer/versions/${ppversion}.php
 
 php -f $installFile mysqlHost="$mysqlhost" mysqlUser="$mysqluser" mysqlPass="$mysqlpass" companyName="$companyname" siteUrl="$siteurl" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass" installDir="$installpath"
 if [ $? -ne 0 ]; then
