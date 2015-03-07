@@ -159,7 +159,7 @@ try {
 					`allocate_disk` int(11) DEFAULT NULL,
 					`fqdn` tinytext NOT NULL,
 					`ip` tinytext NOT NULL,
-					`gsd_secret` char(32) DEFAULT NULL,
+					`gsd_secret` char(36) DEFAULT NULL,
 					`gsd_listen` int(1) DEFAULT '8003',
 					`gsd_console` int(1) DEFAULT '8031',
 					`gsd_server_dir` tinytext,
