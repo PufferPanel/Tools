@@ -3,7 +3,7 @@ use \PDO;
 
 $params = array();
 parse_str(implode('&', array_splice($argv, 1)), $params);
-define("BASE_DIR", $params['installDir']);
+define("BASE_DIR", $params['installDir'] . '/');
 
 if(empty($params)) {
 	echo "You failed to read the docs. Go read them again\n";
