@@ -274,7 +274,7 @@ try {
 		':cname' => $params['companyName'],
 		':murl' => $params['siteUrl'].'/',
 		':mwebsite' => $params['siteUrl'].'/',
-		':aurl' => '//'.$params['siteUrl'].'/assets/'
+		':aurl' => $params['siteUrl'].'/assets/'
 	));
 
 	echo "Settings added\n";
