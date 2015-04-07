@@ -211,7 +211,6 @@ php -f $installFile mysqlHost="$mysqlhost" mysqlUser="$mysqluser" mysqlPass="$my
 if [ $? -ne 0 ]; then
     echo -e "${red}An error occured while installing, halting${normal}";
     revertInstall
-    mysql -h ${mysqlhost} -u ${mysqluser} -p${mysqlpass} -e "DROP DATABASE IF EXISTS pufferpanel"
     exit
 fi
 
