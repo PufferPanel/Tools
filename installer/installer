@@ -93,7 +93,7 @@ checkInstall git Git
 #Check if MySQL is installed
 checkInstall mysql MySQL-client
 
-#Check if PHP depedencies are installed
+#Check if PHP dependencies are installed
 if $phpInstalled; then
     result=$(php -r 'exit (version_compare(PHP_VERSION, "5.5.0") < 0 ? "1" : "0");');
     if [ "$result" -eq "0" ]; then
