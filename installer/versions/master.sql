@@ -91,8 +91,8 @@ LOCK TABLES `plugins` WRITE;
 
 INSERT INTO `plugins` (`id`, `hash`, `name`, `description`, `slug`)
 VALUES
-	(2,'37d8949d-5da2-4390-a28f-27ac1babc4da','Minecraft','Minecraft is a game about breaking and placing blocks. At first, people built structures to protect against nocturnal monsters, but as the game grew players worked together to create wonderful, imaginative things. This version of the plugin is ment for versions of the game <strong>greater than 1.7.0</strong>.','minecraft'),
-	(3,'b4b90feb-6adb-499c-a9f8-09b6e80c9d16','Minecraft (pre 1.7)','Minecraft is a game about breaking and placing blocks. At first, people built structures to protect against nocturnal monsters, but as the game grew players worked together to create wonderful, imaginative things. This version of the plugin is ment for versions of the game <strong>less than 1.7.0</strong>.','minecraft-pre');
+	(2,'37d8949d-5da2-4390-a28f-27ac1babc4da','Minecraft','Minecraft is a game about breaking and placing blocks. At first, people built structures to protect against nocturnal monsters, but as the game grew players worked together to create wonderful, imaginative things. This version of the plugin is meant for versions of the game <strong>greater than 1.7.10</strong>.','minecraft'),
+	(3,'b4b90feb-6adb-499c-a9f8-09b6e80c9d16','Minecraft (pre 1.7)','Minecraft is a game about breaking and placing blocks. At first, people built structures to protect against nocturnal monsters, but as the game grew players worked together to create wonderful, imaginative things. This version of the plugin is meant for versions of the game <strong>less than 1.7.10</strong>.','minecraft-pre');
 
 /*!40000 ALTER TABLE `plugins` ENABLE KEYS */;
 UNLOCK TABLES;
