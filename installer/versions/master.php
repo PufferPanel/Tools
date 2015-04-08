@@ -58,7 +58,7 @@ try {
 	$mysql->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	$mysql->beginTransaction();
 
-	$mysqlQueries = file_get_contents("https://raw.githubusercontent.com/PufferPanel/PufferPanel/master/install/master.sql");
+	$mysqlQueries = file_get_contents("https://raw.githubusercontent.com/PufferPanel/Tools/master/installer/versions/master.sql");
 	$mysql->exec($mysqlQueries);
 
 	$query = $mysql->prepare("INSERT INTO `acp_settings` (`setting_ref`, `setting_val`) VALUES
