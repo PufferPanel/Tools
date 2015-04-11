@@ -104,7 +104,8 @@ CREATE TABLE `servers` (
   `daemon_secret` char(36) NOT NULL,
   `node` int(10) unsigned NOT NULL,
   `name` varchar(200) NOT NULL,
-  `plugin` char(100) NOT NULL,
+  `plugin` int(1) unsigned NOT NULL,
+  `pack` char(100) NOT NULL DEFAULT '',
   `daemon_startup` text,
   `daemon_variables` text,
   `active` tinyint(1) unsigned NOT NULL DEFAULT '1',
@@ -119,9 +120,11 @@ CREATE TABLE `servers` (
   PRIMARY KEY (`id`),
   KEY `FK_servers_users` (`owner_id`),
   KEY `FK_servers_nodes` (`node`),
+  KEY `FK_servers_plugin` (`plugin`),
+  CONSTRAINT `FK_servers_plugin` FOREIGN KEY (`plugin`) REFERENCES `plugins` (`id`),
   CONSTRAINT `FK_servers_nodes` FOREIGN KEY (`node`) REFERENCES `nodes` (`id`),
   CONSTRAINT `FK_servers_users` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB;
+ ) ENGINE=InnoDB;
 
 CREATE TABLE `permissions` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
