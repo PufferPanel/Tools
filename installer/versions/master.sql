@@ -1,8 +1,8 @@
 DROP DATABASE IF EXISTS `pufferpanel`;
-CREATE DATABASE IF NOT EXISTS `pufferpanel` DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
+CREATE DATABASE `pufferpanel` DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci;
 USE `pufferpanel`;
 
-CREATE TABLE IF NOT EXISTS `users` (
+CREATE TABLE `users` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `whmcs_id` int(10) unsigned DEFAULT NULL,
   `uuid` char(36)  NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   UNIQUE KEY `uuid` (`uuid`)
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS `account_change` (
+CREATE TABLE `account_change` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int(10) unsigned DEFAULT NULL,
   `type` varchar(50)  NOT NULL DEFAULT '',
@@ -34,14 +34,14 @@ CREATE TABLE IF NOT EXISTS `account_change` (
   CONSTRAINT `FK_account_change_users` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS `acp_settings` (
+CREATE TABLE `acp_settings` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `setting_ref` char(25)  NOT NULL DEFAULT '',
   `setting_val` text,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS `actions_log` (
+CREATE TABLE `actions_log` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `priority` tinyint(4) NOT NULL,
   `viewable` tinyint(3) unsigned NOT NULL DEFAULT '0',
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS `actions_log` (
   CONSTRAINT `FK_actions_log_users` FOREIGN KEY (`user`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS `downloads` (
+CREATE TABLE `downloads` (
   `id` int(1) unsigned NOT NULL AUTO_INCREMENT,
   `server` char(36)  NOT NULL DEFAULT '',
   `token` char(32)  NOT NULL DEFAULT '',
@@ -64,14 +64,14 @@ CREATE TABLE IF NOT EXISTS `downloads` (
   PRIMARY KEY (`id`)
 ) ENGINE=MEMORY;
 
-CREATE TABLE IF NOT EXISTS `locations` (
+CREATE TABLE `locations` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `short` varchar(10)  NOT NULL DEFAULT '',
   `long` varchar(500)  NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS `nodes` (
+CREATE TABLE `nodes` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `node` char(15)  NOT NULL DEFAULT '',
   `location` int(10) unsigned NOT NULL,
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS `nodes` (
   CONSTRAINT `FK_nodes_locations` FOREIGN KEY (`location`) REFERENCES `locations` (`id`)
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS `plugins` (
+CREATE TABLE `plugins` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `hash` char(36)  NOT NULL DEFAULT '',
   `name` varchar(100)  NOT NULL DEFAULT '',
@@ -107,7 +107,7 @@ INSERT INTO `plugins` (`id`, `hash`, `name`, `description`, `slug`) VALUES
 	(2, '37d8949d-5da2-4390-a28f-27ac1babc4da', 'Minecraft', 'Minecraft is a game about breaking and placing blocks. At first, people built structures to protect against nocturnal monsters, but as the game grew players worked together to create wonderful, imaginative things. This version of the plugin is ment for versions of the game <strong>greater than 1.7.0</strong>.', 'minecraft'),
 	(3, 'b4b90feb-6adb-499c-a9f8-09b6e80c9d16', 'Minecraft (pre 1.7)', 'Minecraft is a game about breaking and placing blocks. At first, people built structures to protect against nocturnal monsters, but as the game grew players worked together to create wonderful, imaginative things. This version of the plugin is ment for versions of the game <strong>less than 1.7.0</strong>.', 'minecraft-pre');
 
-CREATE TABLE IF NOT EXISTS `servers` (
+CREATE TABLE `servers` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `hash` char(36)  NOT NULL DEFAULT '',
   `daemon_secret` char(36)  NOT NULL DEFAULT '',
@@ -132,7 +132,7 @@ CREATE TABLE IF NOT EXISTS `servers` (
   CONSTRAINT `FK_servers_users` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS `subusers` (
+CREATE TABLE `subusers` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `uuid` char(36)  NOT NULL DEFAULT '',
   `user` int(10) unsigned NOT NULL,
@@ -146,7 +146,7 @@ CREATE TABLE IF NOT EXISTS `subusers` (
   UNIQUE KEY `uuid` (`uuid`)
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS `permissions` (
+CREATE TABLE `permissions` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `user` int(10) unsigned NOT NULL,
   `server` int(10) unsigned NOT NULL,
