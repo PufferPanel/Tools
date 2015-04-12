@@ -9,7 +9,7 @@ CREATE TABLE `users` (
   `whmcs_id` int(10) unsigned DEFAULT NULL,
   `uuid` char(36) NOT NULL,
   `username` varchar(50) NOT NULL,
-  `email` varchar(256) NOT NULL,
+  `email` varchar(255) NOT NULL,
   `password` text NOT NULL,
   `language` char(2) NOT NULL DEFAULT 'en',
   `register_time` int(15) unsigned NOT NULL,
@@ -21,7 +21,8 @@ CREATE TABLE `users` (
   `use_totp` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `totp_secret` varchar(16),
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uuid_unique` (`uuid`)
+  UNIQUE KEY `uuid_unique` (`uuid`),
+  UNIQUE KEY `email_unique` (`email`)
 ) ENGINE=InnoDB;
 
 CREATE TABLE `account_change` (
