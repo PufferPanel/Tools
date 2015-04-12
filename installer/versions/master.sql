@@ -4,22 +4,55 @@ CREATE DATABASE `pufferpanel` DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_un
 USE `pufferpanel`;
 
 -- Create the tables needed
+CREATE TABLE `acp_settings` (
+  `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
+  `setting_ref` varchar(25) NOT NULL,
+  `setting_val` text,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `setting_ref_unique` (`setting_ref`)
+) ENGINE=InnoDB;
+
+CREATE TABLE `downloads` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `server` char(36) NOT NULL,
+  `token` char(32) NOT NULL,
+  `path` varchar(5000) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MEMORY;
+
+CREATE TABLE `locations` (
+  `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
+  `short` varchar(10) NOT NULL,
+  `long` varchar(500) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `short_unique` (`short`)
+) ENGINE=InnoDB;
+
+CREATE TABLE `plugins` (
+  `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
+  `hash` char(36) NOT NULL,
+  `slug` varchar(100) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `description` text NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `slug_unique` (`slug`)
+) ENGINE=InnoDB;
+
 CREATE TABLE `users` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `whmcs_id` int(10) unsigned DEFAULT NULL,
   `uuid` char(36) NOT NULL,
   `username` varchar(50) NOT NULL,
   `email` varchar(255) NOT NULL,
-  `password` text NOT NULL,
+  `password` text DEFAULT NULL,
   `language` char(2) NOT NULL DEFAULT 'en',
   `register_time` int(15) unsigned NOT NULL,
-  `session_id` varchar(12) DEFAULT '',
+  `session_id` char(12) DEFAULT '',
   `session_ip` varchar(50) DEFAULT '',
   `root_admin` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `notify_login_s` tinyint(1) unsigned NOT NULL DEFAULT '1',
   `notify_login_f` tinyint(1) unsigned NOT NULL DEFAULT '1',
   `use_totp` tinyint(1) unsigned NOT NULL DEFAULT '0',
-  `totp_secret` varchar(16),
+  `totp_secret` char(16),
   PRIMARY KEY (`id`),
   UNIQUE KEY `uuid_unique` (`uuid`),
   UNIQUE KEY `email_unique` (`email`)
@@ -27,7 +60,7 @@ CREATE TABLE `users` (
 
 CREATE TABLE `account_change` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `user_id` int(10) unsigned DEFAULT NULL,
+  `user_id` int(10) unsigned,
   `type` varchar(50) NOT NULL DEFAULT '',
   `content` mediumtext NOT NULL,
   `key` mediumtext NOT NULL,
@@ -38,53 +71,29 @@ CREATE TABLE `account_change` (
   CONSTRAINT `FK_account_change_users` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB;
 
-CREATE TABLE `acp_settings` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `setting_ref` char(25) NOT NULL,
-  `setting_val` text,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `setting_ref_unique` (`setting_ref`)
-) ENGINE=InnoDB;
-
 CREATE TABLE `actions_log` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `priority` tinyint(4) NOT NULL,
-  `viewable` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `priority` tinyint(1) NOT NULL,
+  `viewable` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `user` int(10) unsigned DEFAULT NULL,
-  `time` int(10) unsigned NOT NULL,
-  `ip` char(100) NOT NULL,
+  `time` int(15) unsigned NOT NULL,
+  `ip` varchar(100) NOT NULL,
   `url` text NOT NULL,
-  `action` char(100) NOT NULL,
+  `action` varchar(100) NOT NULL,
   `desc` mediumtext NOT NULL,
   PRIMARY KEY (`id`),
   KEY `FK_actions_log_users` (`user`),
   CONSTRAINT `FK_actions_log_users` FOREIGN KEY (`user`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB;
 
-CREATE TABLE `downloads` (
-  `id` int(1) unsigned NOT NULL AUTO_INCREMENT,
-  `server` char(36) NOT NULL,
-  `token` char(32) NOT NULL,
-  `path` varchar(5000) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MEMORY;
-
-CREATE TABLE `locations` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `short` varchar(10) NOT NULL,
-  `long` varchar(500) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `short_unique` (`short`)
-) ENGINE=InnoDB;
-
 CREATE TABLE `nodes` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `node` char(15) NOT NULL,
-  `location` int(10) unsigned NOT NULL,
+  `id` mediumint(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(15) NOT NULL,
+  `location` mediumint(8) unsigned NOT NULL,
   `allocate_memory` mediumint(8) unsigned NOT NULL,
   `allocate_disk` int(10) unsigned NOT NULL,
-  `fqdn` text NOT NULL,
-  `ip` text NOT NULL,
+  `fqdn` varchar(255) NOT NULL,
+  `ip` varchar(45) NOT NULL,
   `daemon_secret` char(36) DEFAULT NULL,
   `daemon_listen` smallint(5) unsigned DEFAULT '5656',
   `daemon_console` smallint(5) unsigned DEFAULT '5657',
@@ -93,31 +102,21 @@ CREATE TABLE `nodes` (
   `daemon_base_dir` varchar(200) DEFAULT '/home/',
   `ips` mediumtext NOT NULL,
   `ports` mediumtext NOT NULL,
-  `public` int(1) unsigned NOT NULL DEFAULT '1',
+  `public` tinyint(1) unsigned NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `node` (`node`),
+  UNIQUE KEY `name` (`name`),
   KEY `FK_nodes_locations` (`location`),
   CONSTRAINT `FK_nodes_locations` FOREIGN KEY (`location`) REFERENCES `locations` (`id`)
-) ENGINE=InnoDB;
-
-CREATE TABLE `plugins` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `hash` char(36) NOT NULL,
-  `slug` varchar(100) NOT NULL,
-  `name` varchar(100) NOT NULL,
-  `description` text NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `slug_unique` (`slug`)
 ) ENGINE=InnoDB;
 
 CREATE TABLE `servers` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `hash` char(36) NOT NULL,
   `daemon_secret` char(36) NOT NULL,
-  `node` int(10) unsigned NOT NULL,
+  `node` mediumint(8) unsigned NOT NULL,
   `name` varchar(200) NOT NULL,
-  `plugin` int(1) unsigned NOT NULL,
-  `pack` char(100) NOT NULL DEFAULT '',
+  `plugin` mediumint(10) unsigned NOT NULL,
+  `pack` varchar(100) NOT NULL DEFAULT '',
   `daemon_startup` text,
   `daemon_variables` text,
   `active` tinyint(1) unsigned NOT NULL DEFAULT '1',
@@ -126,9 +125,9 @@ CREATE TABLE `servers` (
   `disk_space` int(10) unsigned NOT NULL,
   `cpu_limit` smallint(6) unsigned DEFAULT NULL,
   `date_added` int(10) unsigned NOT NULL,
-  `server_ip` varchar(50) NOT NULL,
+  `server_ip` varchar(45) NOT NULL,
   `server_port` smallint(5) unsigned NOT NULL,
-  `sftp_user` text NOT NULL,
+  `sftp_user` varchar(32) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `FK_servers_users` (`owner_id`),
   KEY `FK_servers_nodes` (`node`),
@@ -158,8 +157,8 @@ CREATE TABLE `subusers` (
   `daemon_permissions` mediumtext,
   `permissions` mediumtext,
   `pending` tinyint(1) unsigned NOT NULL,
-  `pending_email` varchar(256) DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `user_server_key` (`user`, `server`),
   CONSTRAINT `FK_subusers_user` FOREIGN KEY (`user`) REFERENCES `users` (`id`),
   CONSTRAINT `FK_subusers_server` FOREIGN KEY (`server`) REFERENCES `servers` (`id`)
 ) ENGINE=InnoDB;
