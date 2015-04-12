@@ -21,9 +21,7 @@ CREATE TABLE `users` (
   `use_totp` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `totp_secret` varchar(16),
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uuid_unique` (`uuid`),
-  UNIQUE KEY `email_unique` (`email`),
-  KEY `uuid_key` (`uuid`)
+  UNIQUE KEY `uuid_unique` (`uuid`)
 ) ENGINE=InnoDB;
 
 CREATE TABLE `account_change` (
@@ -161,13 +159,12 @@ CREATE TABLE `subusers` (
   `pending` tinyint(1) unsigned NOT NULL,
   `pending_email` varchar(256) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uuid` (`uuid`),
-  CONSTRAINT `FK_subusers_user` FOREIGN KEY (`user`) REFERENCES `user` (`id`),
-  CONSTRAINT `FK_subusers_server` FOREIGN KEY (`server`) REFERENCES `server` (`id`)
+  CONSTRAINT `FK_subusers_user` FOREIGN KEY (`user`) REFERENCES `users` (`id`),
+  CONSTRAINT `FK_subusers_server` FOREIGN KEY (`server`) REFERENCES `servers` (`id`)
 ) ENGINE=InnoDB;
 
 -- Insert all default data
 INSERT INTO `plugins` (`id`, `hash`, `slug`, `name`, `description`) VALUES
 	(1, '37d8949d-5da2-4390-a28f-27ac1babc4da', 'minecraft', 'Minecraft', 'Minecraft is a game about breaking and placing blocks. At first, people built structures to protect against nocturnal monsters, but as the game grew players worked together to create wonderful, imaginative things. This version of the plugin is ment for versions of the game <strong>greater than 1.7.0</strong>.'),
 	(2, 'b4b90feb-6adb-499c-a9f8-09b6e80c9d16', 'minecraft-pre', 'Minecraft (pre 1.7)', 'Minecraft is a game about breaking and placing blocks. At first, people built structures to protect against nocturnal monsters, but as the game grew players worked together to create wonderful, imaginative things. This version of the plugin is ment for versions of the game <strong>less than 1.7.0</strong>.'),
-	(3, '64a8fe48-0b69-4e8a-96c4-14c60309c6c1', 'bungeecord', 'BungeeCord', 'For a long time, Minecraft server owners have had a dream that encompasses a free, easy, and reliable way to connect multiple Minecraft servers together. BungeeCord is the answer to said dream. Whether you are a small server wishing to string multiple game-modes together, or the owner of the ShotBow Network, BungeeCord is the ideal solution for you. With the help of BungeeCord, you will be able to unlock your community's full potential.');
+	(3, '64a8fe48-0b69-4e8a-96c4-14c60309c6c1', 'bungeecord', 'BungeeCord', 'For a long time, Minecraft server owners have had a dream that encompasses a free, easy, and reliable way to connect multiple Minecraft servers together. BungeeCord is the answer to said dream. Whether you are a small server wishing to string multiple game-modes together, or the owner of the ShotBow Network, BungeeCord is the ideal solution for you. With the help of BungeeCord, you will be able to unlock your community\'s full potential.');
