@@ -98,6 +98,22 @@ CREATE TABLE `nodes` (
   CONSTRAINT `FK_nodes_locations` FOREIGN KEY (`location`) REFERENCES `locations` (`id`)
 ) ENGINE=InnoDB;
 
+CREATE TABLE `plugins` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `hash` char(36) NOT NULL,
+  `slug` varchar(100) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `description` text NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `slug_unique` (`slug`),
+  KEY `slug_key` (`slug`)
+) ENGINE=InnoDB;
+
+INSERT INTO `plugins` (`id`, `hash`, `slug`, `name`, `description`) VALUES
+	(1, '37d8949d-5da2-4390-a28f-27ac1babc4da', 'minecraft', 'Minecraft', 'Minecraft is a game about breaking and placing blocks. At first, people built structures to protect against nocturnal monsters, but as the game grew players worked together to create wonderful, imaginative things. This version of the plugin is ment for versions of the game <strong>greater than 1.7.0</strong>.'),
+	(2, 'b4b90feb-6adb-499c-a9f8-09b6e80c9d16', 'minecraft-pre', 'Minecraft (pre 1.7)', 'Minecraft is a game about breaking and placing blocks. At first, people built structures to protect against nocturnal monsters, but as the game grew players worked together to create wonderful, imaginative things. This version of the plugin is ment for versions of the game <strong>less than 1.7.0</strong>.'),
+	(3, '64a8fe48-0b69-4e8a-96c4-14c60309c6c1', 'bungeecord', 'BungeeCord', 'For a long time, Minecraft server owners have had a dream that encompasses a free, easy, and reliable way to connect multiple Minecraft servers together. BungeeCord is the answer to said dream. Whether you are a small server wishing to string multiple game-modes together, or the owner of the ShotBow Network, BungeeCord is the ideal solution for you. With the help of BungeeCord, you will be able to unlock your community\'s full potential.');
+
 CREATE TABLE `servers` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `hash` char(36) NOT NULL,
@@ -137,22 +153,6 @@ CREATE TABLE `permissions` (
   CONSTRAINT `FK_permissions_servers` FOREIGN KEY (`server`) REFERENCES `servers` (`id`),
   CONSTRAINT `FK_permissions_users` FOREIGN KEY (`user`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB;
-
-CREATE TABLE `plugins` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `hash` char(36) NOT NULL,
-  `slug` varchar(100) NOT NULL,
-  `name` varchar(100) NOT NULL,
-  `description` text NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `slug_unique` (`slug`),
-  KEY `slug_key` (`slug`)
-) ENGINE=InnoDB;
-
-INSERT INTO `plugins` (`id`, `hash`, `slug`, `name`, `description`) VALUES
-	(1, '37d8949d-5da2-4390-a28f-27ac1babc4da', 'minecraft', 'Minecraft', 'Minecraft is a game about breaking and placing blocks. At first, people built structures to protect against nocturnal monsters, but as the game grew players worked together to create wonderful, imaginative things. This version of the plugin is ment for versions of the game <strong>greater than 1.7.0</strong>.'),
-	(2, 'b4b90feb-6adb-499c-a9f8-09b6e80c9d16', 'minecraft-pre', 'Minecraft (pre 1.7)', 'Minecraft is a game about breaking and placing blocks. At first, people built structures to protect against nocturnal monsters, but as the game grew players worked together to create wonderful, imaginative things. This version of the plugin is ment for versions of the game <strong>less than 1.7.0</strong>.'),
-	(3, '64a8fe48-0b69-4e8a-96c4-14c60309c6c1', 'bungeecord', 'BungeeCord', 'For a long time, Minecraft server owners have had a dream that encompasses a free, easy, and reliable way to connect multiple Minecraft servers together. BungeeCord is the answer to said dream. Whether you are a small server wishing to string multiple game-modes together, or the owner of the ShotBow Network, BungeeCord is the ideal solution for you. With the help of BungeeCord, you will be able to unlock your community\'s full potential.');
 
 CREATE TABLE `subusers` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
