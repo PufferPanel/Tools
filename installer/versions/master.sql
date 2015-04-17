@@ -34,6 +34,7 @@ CREATE TABLE `plugins` (
   `slug` varchar(100) NOT NULL,
   `name` varchar(100) NOT NULL,
   `description` text NOT NULL,
+  `variables` text,
   PRIMARY KEY (`id`),
   UNIQUE KEY `slug_unique` (`slug`)
 ) ENGINE=InnoDB;
