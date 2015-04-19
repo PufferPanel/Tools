@@ -42,7 +42,7 @@ CREATE TABLE `plugins` (
 CREATE TABLE `users` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `uuid` char(36) NOT NULL,
-  `username` varchar(50) NOT NULL,
+  `username` varchar(50),
   `email` varchar(255) NOT NULL,
   `password` text DEFAULT NULL,
   `language` char(2) NOT NULL DEFAULT 'en',
@@ -156,7 +156,6 @@ CREATE TABLE `subusers` (
   `server` int(10) unsigned NOT NULL,
   `daemon_secret` char(36) NOT NULL,
   `daemon_permissions` mediumtext,
-  `permissions` mediumtext,
   `pending` tinyint(1) unsigned NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_server_key` (`user`, `server`),
