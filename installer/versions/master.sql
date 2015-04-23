@@ -129,6 +129,7 @@ CREATE TABLE `servers` (
   `server_ip` varchar(45) NOT NULL,
   `server_port` smallint(5) unsigned NOT NULL,
   `sftp_user` varchar(32) NOT NULL,
+  `installed` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `FK_servers_users` (`owner_id`),
   KEY `FK_servers_nodes` (`node`),
