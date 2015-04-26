@@ -157,7 +157,6 @@ CREATE TABLE `subusers` (
   `server` int(10) unsigned NOT NULL,
   `daemon_secret` char(36) NOT NULL,
   `daemon_permissions` mediumtext,
-  `pending` tinyint(1) unsigned NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_server_key` (`user`, `server`),
   CONSTRAINT `FK_subusers_user` FOREIGN KEY (`user`) REFERENCES `users` (`id`),
