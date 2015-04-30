@@ -225,7 +225,9 @@ fi
 echo "-----"
 echo "Finishing install"
 chmod -R 774 $installpath/src/cache
-mv $installpath $finalpath
+mkdir $finalpath
+chmod 774 $finalpath
+mv ${installpath}/* $finalpath
 
 getent passwd ${webuser} > /dev/null
 if [ $? -eq 0 ]; then
