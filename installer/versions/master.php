@@ -34,7 +34,7 @@ try {
 			'host' => $params['mysqlHost'],
 			'port' => $params['mysqlPort']
 			'database' => $params['mysqlDatabase'],
-			'username' => $params['mysqlUser'],
+			'username' => 'pufferpanel',
 			'password' => $pass,
 			'ssl' => array(
 				'use' => false,
@@ -77,7 +77,7 @@ try {
 					('captcha_pub','6LdSzuYSAAAAAHkmq8LlvmhM-ybTfV8PaTgyBDII'),
 					('captcha_priv','6LdSzuYSAAAAAISSAYIJrFGGGJHi5a_V3hGRvIAz'),
 					('default_language', :defaultLanguage),
-					('force_online', 0),
+					('force_online', :force),
 					('https', 0),
 					('use_api', 0),
 					('allow_subusers', 0)");
