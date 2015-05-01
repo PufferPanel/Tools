@@ -169,7 +169,8 @@ read defaultlanguage
 echo -n "Do you want to activate SSL? "
 read usessl
 
-if ${usessl); then
+if [ "$(usessl)" == 'yes' ];
+
 echo -n "Enter Path to client-key:  "
 read clientkey
 echo -n "Enter Path to client-cert:  "
