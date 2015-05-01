@@ -34,7 +34,7 @@ function revertInstall {
     rm -rf ${installpath}
 }
 
-while getopts "h?dp:tu:l" opt; do
+while getopts "h?dtu:l" opt; do
     case "$opt" in
     h)
         echo "PufferPanel Installer - Version $version"
