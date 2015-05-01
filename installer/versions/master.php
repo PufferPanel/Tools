@@ -35,6 +35,7 @@ try {
 			'database' => 'pufferpanel',
 			'username' => 'pufferpanel',
 			'password' => $pass,
+            'port' => 3306,
 			'ssl' => array(
 				'use' => false,
 				'client-key' => '/path/to/key.pem',
