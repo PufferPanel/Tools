@@ -210,7 +210,7 @@ echo "-----"
 cd $installpath
 ppversion=$(git describe --abbrev=0 --tags)
 if ${usedev}; then
-    ppversion="master"
+    ppversion="dev"
     echo "Using dev version"
 else
     echo "Checking out ${ppversion}"
@@ -231,7 +231,7 @@ echo "-----"
 echo "Executing panel version installer"
 
 installFile=$(mktemp -t XXXXX.php);
-curl -sS -o $installFile https://raw.githubusercontent.com/PufferPanel/Tools/master/installer/versions/${ppversion}.php
+curl -sS -o $installFile https://raw.githubusercontent.com/PufferPanel/Tools/master/installer/versions/${ppversion}/installer.php
 
 php -f $installFile mysqlHost="$mysqlhost" mysqlUser="$mysqluser" mysqlPass="$mysqlpass" mysqlPort="$mysqlport" mysqlDatabase="$mysqldatabase" companyName="$companyname" siteUrl="$siteurl" defaultLanguage="$defaultlanguage" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass" adminLanguage="$adminlanguage" client-key="$clientkey" client-cert="$clientcert" ca-cert="$cacert" useinstallDir="$installpath"
 if [ $? -ne 0 ]; then
