@@ -225,7 +225,7 @@ fi
 echo "-----"
 echo "Finishing install"
 chmod -R 774 $installpath/src/cache
-mkdir $finalpath
+mkdir -p $finalpath
 chmod 774 $finalpath
 mv ${installpath}/* $finalpath
 
