@@ -37,10 +37,10 @@ try {
 			'username' => 'pufferpanel',
 			'password' => $pass,
 			'ssl' => array(
-				'use' => false,
-				'client-key' => '/path/to/key.pem',
-				'client-cert' => '/path/to/cert.pem',
-				'ca-cert' => '/path/to/ca-cert.pem'
+				'use' => $params['useSSL'],
+				'client-key' => $params['client-key'],
+				'client-cert' => $params['client-cert'],
+				'ca-cert' => $params['ca-cert']
 			)
 		),
 		'hash' => $hash
