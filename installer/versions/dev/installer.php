@@ -74,10 +74,10 @@ try {
 					('sendgrid_api_key', NULL),
 					('sendmail_email', NULL),
 					('sendmail_method','php'),
-					('captcha_pub','6LdSzuYSAAAAAHkmq8LlvmhM-ybTfV8PaTgyBDII'),
-					('captcha_priv','6LdSzuYSAAAAAISSAYIJrFGGGJHi5a_V3hGRvIAz'),
+					('captcha_pub',:captcha_pub),
+					('captcha_priv',:captcha_private),
 					('default_language', :defaultLanguage),
-					('force_online', :force),
+					('force_online', 0),
 					('https', 0),
 					('use_api', 0),
 					('allow_subusers', 0)");
@@ -87,7 +87,9 @@ try {
 		':murl' => $params['siteUrl'].'/',
 		':mwebsite' => $params['siteUrl'].'/',
 		':defaultLanguage' => $params['defaultLanguage'],
-		':aurl' => '//'.$params['siteUrl'].'/assets/'
+		':aurl' => '//'.$params['siteUrl'].'/assets/',
+		':captcha_pub' => $params['captcha_private'],
+		':captcha_private' => $params['captcha_public']
 	));
 
 	echo "Settings added\n";
