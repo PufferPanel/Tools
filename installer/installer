@@ -142,6 +142,8 @@ echo -n "MySQL Host: "
 read mysqlhost
 echo -n "MySQL Port: "
 read mysqlport
+echo -n "MySQL Database: "
+read mysqldatabase
 echo -n "MySQL Username: "
 read mysqluser
 notValid=true
@@ -162,6 +164,8 @@ echo -n "Enter company name: "
 read companyname
 echo -n "Enter site url: "
 read siteurl
+echo -n "Enter default Language: "
+read defaultlanguage
 
 echo "-----"
 echo "Preparing admin account"
@@ -171,6 +175,8 @@ echo -n "Email: "
 read adminemail
 echo -n "Password: "
 read -s adminpass
+echo -n "Admin Language: "
+read adminlanguage
 echo ""
 
 echo "-----"
@@ -209,7 +215,7 @@ echo "Executing panel version installer"
 installFile=$(mktemp -t XXXXX.php);
 curl -sS -o $installFile https://raw.githubusercontent.com/PufferPanel/Tools/master/installer/versions/${ppversion}.php
 
-php -f $installFile mysqlHost="$mysqlhost" mysqlUser="$mysqluser" mysqlPass="$mysqlpass" mysqlPort="$mysqlport" companyName="$companyname" siteUrl="$siteurl" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass" installDir="$installpath"
+php -f $installFile mysqlHost="$mysqlhost" mysqlUser="$mysqluser" mysqlPass="$mysqlpass" mysqlPort="$mysqlport" mysqlDatabase="$mysqldatabase" companyName="$companyname" siteUrl="$siteurl" defaultLanguage="$defaultlanguage" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass" adminLanguage="$adminlanguage" installDir="$installpath"
 if [ $? -ne 0 ]; then
     echo -e "${red}An error occured while installing, halting${normal}";
     revertInstall
