@@ -32,8 +32,9 @@ try {
 	fwrite($fp, json_encode(array(
 		'mysql' => array(
 			'host' => $params['mysqlHost'],
-			'database' => 'pufferpanel',
-			'username' => 'pufferpanel',
+			'port' => $params['mysqlPort']
+			'database' => $params['mysqlDatabase'],
+			'username' => $params['mysqlUser'],
 			'password' => $pass,
 			'ssl' => array(
 				'use' => false,
@@ -50,6 +51,7 @@ try {
 		throw new \Exception("Could not create config.json");
 	}
 
+	//@TODO Use Port and Database Name here
 	$mysql = new PDO('mysql:host='.$params['mysqlHost'], $params['mysqlUser'], $params['mysqlPass'], array(
 		PDO::ATTR_PERSISTENT => true,
 		PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
@@ -74,7 +76,7 @@ try {
 					('sendmail_method','php'),
 					('captcha_pub','6LdSzuYSAAAAAHkmq8LlvmhM-ybTfV8PaTgyBDII'),
 					('captcha_priv','6LdSzuYSAAAAAISSAYIJrFGGGJHi5a_V3hGRvIAz'),
-					('default_language', 'en'),
+					('default_language', :defaultLanguage),
 					('force_online', 0),
 					('https', 0),
 					('use_api', 0),
@@ -84,6 +86,7 @@ try {
 		':cname' => $params['companyName'],
 		':murl' => $params['siteUrl'].'/',
 		':mwebsite' => $params['siteUrl'].'/',
+		':defaultLanguage' => $params['defaultLanguage'],
 		':aurl' => '//'.$params['siteUrl'].'/assets/'
 	));
 
@@ -95,7 +98,7 @@ try {
 		':username' => $params['adminName'],
 		':email' => $params['adminEmail'],
 		':password' => password_hash($params['adminPass'], PASSWORD_BCRYPT),
-		':language' => 'en',
+		':language' => $params['adminLanguage'],
 		':time' => time()
 	));
 
