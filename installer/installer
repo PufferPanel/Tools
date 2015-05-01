@@ -66,6 +66,13 @@ shift $((OPTIND-1))
 
 [ "$1" = "--" ] && shift
 
+echo -n "PufferPanel Install Location [${finalpath}]: "
+read inputFinalPath
+
+if [${inputFinalPath} != ""]; then
+    finalpath = inputFinalPath
+fi
+
 echo "PufferPanel Installer - Version $version"
 echo "------"
 echo "Install path: ${finalpath}"
