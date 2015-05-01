@@ -140,13 +140,15 @@ echo "Preparing MySQL connection"
 echo -e "${red}For this step, please use either root or an account with database creation and GRANT${normal}"
 echo -n "MySQL Host: "
 read mysqlhost
+echo -n "MySQL Port: "
+read mysqlport
 echo -n "MySQL Username: "
 read mysqluser
 notValid=true
 while ${notValid}; do
     echo -n "MySQL Password: "
     read -s mysqlpass
-    if mysql -h ${mysqlhost} -u ${mysqluser} -p${mysqlpass} -e "exit"; then 
+    if mysql -h ${mysqlhost} -P $(mysqlport) -u ${mysqluser} -p${mysqlpass} -e "exit"; then 
         notValid=false
     else 
         echo "${red}Database connection could not be established${normal}"
@@ -207,7 +209,7 @@ echo "Executing panel version installer"
 installFile=$(mktemp -t XXXXX.php);
 curl -sS -o $installFile https://raw.githubusercontent.com/PufferPanel/Tools/master/installer/versions/${ppversion}.php
 
-php -f $installFile mysqlHost="$mysqlhost" mysqlUser="$mysqluser" mysqlPass="$mysqlpass" companyName="$companyname" siteUrl="$siteurl" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass" installDir="$installpath"
+php -f $installFile mysqlHost="$mysqlhost" mysqlUser="$mysqluser" mysqlPass="$mysqlpass" mysqlPort="$mysqlport" companyName="$companyname" siteUrl="$siteurl" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass" installDir="$installpath"
 if [ $? -ne 0 ]; then
     echo -e "${red}An error occured while installing, halting${normal}";
     revertInstall
