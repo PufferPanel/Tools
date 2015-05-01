@@ -8,4 +8,8 @@ cd versions
 mkdir "$version"
 cd ..
 cp "/dev/installer.php" "$version/installer.php"
+cd ..
+cd "sql"
+mkdir "$version"
+cp "/dev/dev.sql" "$version.sql"
 echo "Generated new Version!"
