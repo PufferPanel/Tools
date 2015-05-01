@@ -184,6 +184,10 @@ clientcert="/path/to/cert.pem"
 cacert="/path/to/ca-cert.pem"
 fi
 
+echo -n "Enter Public Captcha Key: "
+read captcha_public
+echo -n "Enter Private Captcha Key: "
+read captcha_private
 
 echo "-----"
 echo "Preparing admin account"
@@ -233,7 +237,7 @@ echo "Executing panel version installer"
 installFile=$(mktemp -t XXXXX.php);
 curl -sS -o $installFile https://raw.githubusercontent.com/PufferPanel/Tools/master/installer/versions/${ppversion}/installer.php
 
-php -f $installFile mysqlHost="$mysqlhost" mysqlUser="$mysqluser" mysqlPass="$mysqlpass" mysqlPort="$mysqlport" mysqlDatabase="$mysqldatabase" companyName="$companyname" siteUrl="$siteurl" defaultLanguage="$defaultlanguage" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass" adminLanguage="$adminlanguage" client-key="$clientkey" client-cert="$clientcert" ca-cert="$cacert" useinstallDir="$installpath"
+php -f $installFile mysqlHost="$mysqlhost" mysqlUser="$mysqluser" mysqlPass="$mysqlpass" mysqlPort="$mysqlport" mysqlDatabase="$mysqldatabase" companyName="$companyname" siteUrl="$siteurl" defaultLanguage="$defaultlanguage" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass" adminLanguage="$adminlanguage" client-key="$clientkey" client-cert="$clientcert" ca-cert="$cacert" captcha_private="$captcha_private" captcha_public="$captcha_public" useinstallDir="$installpath"
 if [ $? -ne 0 ]; then
     echo -e "${red}An error occured while installing, halting${normal}";
     revertInstall
