@@ -148,7 +148,7 @@ notValid=true
 while ${notValid}; do
     echo -n "MySQL Password: "
     read -s mysqlpass
-    if mysql -h ${mysqlhost} -P $(mysqlport) -u ${mysqluser} -p${mysqlpass} -e "exit"; then 
+    if mysql -h ${mysqlhost} -P ${mysqlport} -u ${mysqluser} -p${mysqlpass} -e "exit"; then 
         notValid=false
     else 
         echo "${red}Database connection could not be established${normal}"
