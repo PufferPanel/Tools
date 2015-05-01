@@ -140,13 +140,17 @@ echo "Preparing MySQL connection"
 echo -e "${red}For this step, please use either root or an account with database creation and GRANT${normal}"
 echo -n "MySQL Host: "
 read mysqlhost
+echo -n "MySQL Port: "
+read mysqlport
+echo -n "MySQL Database: "
+read mysqldatabase
 echo -n "MySQL Username: "
 read mysqluser
 notValid=true
 while ${notValid}; do
     echo -n "MySQL Password: "
     read -s mysqlpass
-    if mysql -h ${mysqlhost} -u ${mysqluser} -p${mysqlpass} -e "exit"; then 
+    if mysql -h ${mysqlhost} -P ${mysqlport} -u ${mysqluser} -p${mysqlpass} -e "exit"; then 
         notValid=false
     else 
         echo "${red}Database connection could not be established${normal}"
@@ -160,6 +164,30 @@ echo -n "Enter company name: "
 read companyname
 echo -n "Enter site url: "
 read siteurl
+echo -n "Enter default Language: "
+read defaultlanguage
+echo -n "Do you want to activate SSL? "
+read usessl
+
+if [ "$(usessl)" == 'yes' ];
+
+echo -n "Enter Path to client-key:  "
+read clientkey
+echo -n "Enter Path to client-cert:  "
+read clientcert
+echo -n "Enter Path to ca-cert: "
+read cacert
+
+else
+clientkey="/path/to/key.pem"
+clientcert="/path/to/cert.pem"
+cacert="/path/to/ca-cert.pem"
+fi
+
+echo -n "Enter Public Captcha Key: "
+read captcha_public
+echo -n "Enter Private Captcha Key: "
+read captcha_private
 
 echo "-----"
 echo "Preparing admin account"
@@ -169,6 +197,8 @@ echo -n "Email: "
 read adminemail
 echo -n "Password: "
 read -s adminpass
+echo -n "Admin Language: "
+read adminlanguage
 echo ""
 
 echo "-----"
@@ -184,7 +214,7 @@ echo "-----"
 cd $installpath
 ppversion=$(git describe --abbrev=0 --tags)
 if ${usedev}; then
-    ppversion="master"
+    ppversion="dev"
     echo "Using dev version"
 else
     echo "Checking out ${ppversion}"
@@ -205,9 +235,9 @@ echo "-----"
 echo "Executing panel version installer"
 
 installFile=$(mktemp -t XXXXX.php);
-curl -sS -o $installFile https://raw.githubusercontent.com/PufferPanel/Tools/master/installer/versions/${ppversion}.php
+curl -sS -o $installFile https://raw.githubusercontent.com/PufferPanel/Tools/master/installer/versions/${ppversion}/installer.php
 
-php -f $installFile mysqlHost="$mysqlhost" mysqlUser="$mysqluser" mysqlPass="$mysqlpass" companyName="$companyname" siteUrl="$siteurl" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass" installDir="$installpath"
+php -f $installFile mysqlHost="$mysqlhost" mysqlUser="$mysqluser" mysqlPass="$mysqlpass" mysqlPort="$mysqlport" mysqlDatabase="$mysqldatabase" companyName="$companyname" siteUrl="$siteurl" defaultLanguage="$defaultlanguage" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass" adminLanguage="$adminlanguage" client-key="$clientkey" client-cert="$clientcert" ca-cert="$cacert" captcha_private="$captcha_private" captcha_public="$captcha_public" useinstallDir="$installpath"
 if [ $? -ne 0 ]; then
     echo -e "${red}An error occured while installing, halting${normal}";
     revertInstall

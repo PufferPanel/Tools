@@ -32,14 +32,15 @@ try {
 	fwrite($fp, json_encode(array(
 		'mysql' => array(
 			'host' => $params['mysqlHost'],
-			'database' => 'pufferpanel',
+			'port' => $params['mysqlPort']
+			'database' => $params['mysqlDatabase'],
 			'username' => 'pufferpanel',
 			'password' => $pass,
 			'ssl' => array(
-				'use' => false,
-				'client-key' => '/path/to/key.pem',
-				'client-cert' => '/path/to/cert.pem',
-				'ca-cert' => '/path/to/ca-cert.pem'
+				'use' => $params['useSSL'],
+				'client-key' => $params['client-key'],
+				'client-cert' => $params['client-cert'],
+				'ca-cert' => $params['ca-cert']
 			)
 		),
 		'hash' => $hash
@@ -50,6 +51,7 @@ try {
 		throw new \Exception("Could not create config.json");
 	}
 
+	//@TODO Use Port and Database Name here
 	$mysql = new PDO('mysql:host='.$params['mysqlHost'], $params['mysqlUser'], $params['mysqlPass'], array(
 		PDO::ATTR_PERSISTENT => true,
 		PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
@@ -58,7 +60,7 @@ try {
 	$mysql->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	$mysql->beginTransaction();
 
-	$mysqlQueries = file_get_contents("https://raw.githubusercontent.com/PufferPanel/Tools/master/installer/versions/master.sql");
+	$mysqlQueries = file_get_contents("https://raw.githubusercontent.com/PufferPanel/Tools/master/installer/sql/dev.sql");
 	$mysql->exec($mysqlQueries);
 
 	$query = $mysql->prepare("INSERT INTO `acp_settings` (`setting_ref`, `setting_val`) VALUES
@@ -72,9 +74,9 @@ try {
 					('sendgrid_api_key', NULL),
 					('sendmail_email', NULL),
 					('sendmail_method','php'),
-					('captcha_pub','6LdSzuYSAAAAAHkmq8LlvmhM-ybTfV8PaTgyBDII'),
-					('captcha_priv','6LdSzuYSAAAAAISSAYIJrFGGGJHi5a_V3hGRvIAz'),
-					('default_language', 'en'),
+					('captcha_pub',:captcha_pub),
+					('captcha_priv',:captcha_private),
+					('default_language', :defaultLanguage),
 					('force_online', 0),
 					('https', 0),
 					('use_api', 0),
@@ -84,7 +86,10 @@ try {
 		':cname' => $params['companyName'],
 		':murl' => $params['siteUrl'].'/',
 		':mwebsite' => $params['siteUrl'].'/',
-		':aurl' => '//'.$params['siteUrl'].'/assets/'
+		':defaultLanguage' => $params['defaultLanguage'],
+		':aurl' => '//'.$params['siteUrl'].'/assets/',
+		':captcha_pub' => $params['captcha_private'],
+		':captcha_private' => $params['captcha_public']
 	));
 
 	echo "Settings added\n";
@@ -95,7 +100,7 @@ try {
 		':username' => $params['adminName'],
 		':email' => $params['adminEmail'],
 		':password' => password_hash($params['adminPass'], PASSWORD_BCRYPT),
-		':language' => 'en',
+		':language' => $params['adminLanguage'],
 		':time' => time()
 	));
 

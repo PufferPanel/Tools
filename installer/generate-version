@@ -1,0 +1,15 @@
+#!/bin/bash
+version=0.1
+echo "PufferPanel Installer Generator - Version $version"
+echo "-----"
+echo -n "Version Name: "
+read version
+cd versions
+mkdir "$version"
+cd ..
+cp "/dev/installer.php" "$version/installer.php"
+cd ..
+cd "sql"
+mkdir "$version"
+cp "/dev/dev.sql" "$version.sql"
+echo "Generated new Version!"
