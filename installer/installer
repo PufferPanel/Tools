@@ -83,7 +83,7 @@ echo -n "PufferPanel Install Location [${finalpath}]: "
 read inputFinalPath
 
 if [${inputFinalPath} != ""]; then
-    finalpath = inputFinalPath
+    finalpath=inputFinalPath
 fi
 
 echo "PufferPanel Installer - Version $version"
