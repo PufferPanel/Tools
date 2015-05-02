@@ -83,7 +83,7 @@ echo -n "PufferPanel Install Location [${finalpath}]: "
 read inputFinalPath
 
 if [${inputFinalPath} != ""]; then
-    finalpath=inputFinalPath
+    finalpath=${inputFinalPath}
 fi
 
 echo "PufferPanel Installer - Version $version"
@@ -162,13 +162,13 @@ echo -e "${red}For this step, please use either root or an account with database
 echo -n "MySQL Host [${mysqlhost}]: "
 read inputmysqlhost
 if [${inputmysqlhost} != ""]; then
-    mysqlhost=inputmysqlhost
+    mysqlhost=${inputmysqlhost}
 fi
 
 echo -n "MySQL Username [${mysqluser}]: "
 read inputmysqluser
 if [${inputmysqluser} != ""]; then
-    mysqluser=inputmysqluser
+    mysqluser=${inputmysqluser}
 fi
 
 notValid=true
@@ -188,13 +188,13 @@ echo "Preparing Site configuration"
 echo -n "Enter company name [${companyname}]: "
 read inputcompanyname
 if [${inputcompanyname} != ""]; then
-    companyname=inputcompanyname
+    companyname=${inputcompanyname}
 fi
 
 echo -n "Enter site url [${siteurl}]: "
 read inputsiteurl
 if [${inputsiteurl} != ""]; then
-    siteurl=inputsiteurl
+    siteurl=${inputsiteurl}
 fi
 
 echo "-----"
@@ -202,13 +202,13 @@ echo "Preparing admin account"
 echo -n "Username [${adminname}]: "
 read inputadminname
 if [${inputadminname} != ""]; then
-    adminname=inputadminname
+    adminname=${inputadminname}
 fi
 
 echo -n "Email [${adminemail}]: "
 read inputadminemail
 if [${inputadminemail} != ""]; then
-    adminemail=inputadminemail
+    adminemail=${inputadminemail}
 fi
 
 echo -n "Password: "
