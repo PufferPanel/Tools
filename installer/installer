@@ -82,7 +82,7 @@ shift $((OPTIND-1))
 echo -n "PufferPanel Install Location [${finalpath}]: "
 read inputFinalPath
 
-if [${inputFinalPath} != ""]; then
+if [ -n "${inputFinalPath}" ]; then
     finalpath=${inputFinalPath}
 fi
 
@@ -161,13 +161,13 @@ echo -e "${red}For this step, please use either root or an account with database
 
 echo -n "MySQL Host [${mysqlhost}]: "
 read inputmysqlhost
-if [${inputmysqlhost} != ""]; then
+if [ -n "${inputmysqlhost}" ]; then
     mysqlhost=${inputmysqlhost}
 fi
 
 echo -n "MySQL Username [${mysqluser}]: "
 read inputmysqluser
-if [${inputmysqluser} != ""]; then
+if [ -n "${inputmysqluser}" ]; then
     mysqluser=${inputmysqluser}
 fi
 
@@ -187,13 +187,13 @@ echo "-----"
 echo "Preparing Site configuration"
 echo -n "Enter company name [${companyname}]: "
 read inputcompanyname
-if [${inputcompanyname} != ""]; then
+if [ -n "${inputcompanyname}" ]; then
     companyname=${inputcompanyname}
 fi
 
 echo -n "Enter site url [${siteurl}]: "
 read inputsiteurl
-if [${inputsiteurl} != ""]; then
+if [ -n "${inputsiteurl}" ]; then
     siteurl=${inputsiteurl}
 fi
 
@@ -201,13 +201,13 @@ echo "-----"
 echo "Preparing admin account"
 echo -n "Username [${adminname}]: "
 read inputadminname
-if [${inputadminname} != ""]; then
+if [ -n "${inputadminname}" ]; then
     adminname=${inputadminname}
 fi
 
 echo -n "Email [${adminemail}]: "
 read inputadminemail
-if [${inputadminemail} != ""]; then
+if [ -n "${inputadminemail}" ]; then
     adminemail=${inputadminemail}
 fi
 
