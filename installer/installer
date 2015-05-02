@@ -12,6 +12,15 @@ webuser="apache"
 test=false
 skiplang=false
 
+#Check distro and set proper webuser
+distro=`. /etc/os-release; echo $ID`
+if [ ${distro} = "ubuntu" ]; then
+    webuser="www-data";
+elif [ ${distro} = "debian" ]; then
+    webuser="www-data";
+fi
+    
+
 #This is a helper function to allow for less repetition of command checks
 function checkInstall {
     if type "$1" 1>/dev/null 2>&1; then
