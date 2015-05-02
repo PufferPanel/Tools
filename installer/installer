@@ -12,6 +12,13 @@ webuser="apache"
 test=false
 skiplang=false
 
+mysqlhost="localhost"
+mysqluser="root"
+companyname="ExampleHost"
+siteurl="panel.examplehost.com"
+adminname="admin"
+adminemail="admin@examplehost.com"
+
 #Check distro and set proper webuser
 distro=`. /etc/os-release; echo $ID`
 if [ ${distro} = "ubuntu" ]; then
@@ -151,10 +158,19 @@ fi
 echo "-----"
 echo "Preparing MySQL connection"
 echo -e "${red}For this step, please use either root or an account with database creation and GRANT${normal}"
-echo -n "MySQL Host: "
-read mysqlhost
-echo -n "MySQL Username: "
-read mysqluser
+
+echo -n "MySQL Host [${mysqlhost}]: "
+read inputmysqlhost
+if [${inputmysqlhost} != ""]; then
+    mysqlhost = inputmysqlhost
+fi
+
+echo -n "MySQL Username [${mysqluser}]: "
+read inputmysqluser
+if [${inputmysqluser} != ""]; then
+    mysqluser = inputmysqluser
+fi
+
 notValid=true
 while ${notValid}; do
     echo -n "MySQL Password: "
@@ -169,17 +185,32 @@ done;
 echo ""
 echo "-----"
 echo "Preparing Site configuration"
-echo -n "Enter company name: "
-read companyname
-echo -n "Enter site url: "
-read siteurl
+echo -n "Enter company name [${companyname}]: "
+read inputcompanyname
+if [${inputcompanyname} != ""]; then
+    companyname = inputcompanyname
+fi
+
+echo -n "Enter site url [${siteurl}]: "
+read inputsiteurl
+if [${inputsiteurl} != ""]; then
+    siteurl = inputsiteurl
+fi
 
 echo "-----"
 echo "Preparing admin account"
-echo -n "Username: "
-read adminname
-echo -n "Email: "
-read adminemail
+echo -n "Username [${adminname}]: "
+read inputadminname
+if [${inputadminname} != ""]; then
+    adminname = inputadminname
+fi
+
+echo -n "Email [${adminemail}]: "
+read inputadminemail
+if [${inputadminemail} != ""]; then
+    adminemail = inputadminemail
+fi
+
 echo -n "Password: "
 read -s adminpass
 echo ""
