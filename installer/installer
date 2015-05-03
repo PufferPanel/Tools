@@ -285,5 +285,5 @@ else
 fi
 
 echo -e "${green}PufferPanel has installed successfully."
-echo -e "If the above chown is not the correct user or did not work, please manually chown the $installpath folder${normal}"
+echo -e "If the above chown is not the correct user or did not work, please manually chown the ${finalpath} folder${normal}"
 exit
