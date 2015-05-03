@@ -15,7 +15,7 @@ skiplang=false
 mysqlhost="localhost"
 mysqluser="root"
 companyname="ExampleHost"
-siteurl="panel.examplehost.com"
+siteurl="http://panel.examplehost.com"
 adminname="admin"
 adminemail="admin@examplehost.com"
 
@@ -191,7 +191,7 @@ if [ -n "${inputcompanyname}" ]; then
     companyname=${inputcompanyname}
 fi
 
-echo -n "Enter site url [${siteurl}]: "
+echo -n "Enter site URL (including http(s)://) [${siteurl}]: "
 read inputsiteurl
 if [ -n "${inputsiteurl}" ]; then
     siteurl=${inputsiteurl}
