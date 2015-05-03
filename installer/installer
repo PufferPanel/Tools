@@ -270,6 +270,7 @@ echo "-----"
 echo "Finishing install"
 mkdir -p ${finalpath}
 
+shopt -s dotglob
 mv ${installpath}/* ${finalpath}
 chmod -R 777 ${finalpath}/src/logs
 
