@@ -15,7 +15,7 @@ skiplang=false
 mysqlhost="localhost"
 mysqluser="root"
 companyname="ExampleHost"
-siteurl="http://panel.examplehost.com"
+siteurl="panel.examplehost.com"
 adminname="admin"
 adminemail="admin@examplehost.com"
 
@@ -26,7 +26,7 @@ if [ ${distro} = "ubuntu" ]; then
 elif [ ${distro} = "debian" ]; then
     webuser="www-data";
 fi
-    
+
 
 #This is a helper function to allow for less repetition of command checks
 function checkInstall {
@@ -61,15 +61,15 @@ while getopts "h?dtu:l" opt; do
         echo "-l        | Skips language building"
         exit;
         ;;
-    d)  
+    d)
         usedev=true
         ;;
     u)
         webuser=$OPTARG
         ;;
-    t) 
+    t)
         test=true
-        ;;    
+        ;;
     l)
         skiplang=true
     esac
@@ -103,7 +103,7 @@ checkInstall php PHP
 
 if $canInstall; then
     phpInstalled=true
-else 
+else
     phpInstalled=false
 fi
 
@@ -126,7 +126,7 @@ if $phpInstalled; then
     extensions=("curl" "hash" "openssl" "mcrypt" "pdo" "pdo_mysql")
     for i in ${extensions[@]}; do
         phpcmd=`php <<EOF
-<?php exit (extension_loaded("${i}") ? "1" : "0"); ?> 
+<?php exit (extension_loaded("${i}") ? "1" : "0"); ?>
 EOF`
         result=$phpcmd;
         if [ "$result" -ne "0" ]; then
@@ -147,7 +147,7 @@ if ${canInstall}; then
     if ${test}; then
         echo -e "${green}All dependencies are validated${normal}"
         exit;
-    else 
+    else
         echo -e "${green}All dependencies are installed, processing with installation${normal}";
     fi
 else
@@ -175,9 +175,9 @@ notValid=true
 while ${notValid}; do
     echo -n "MySQL Password: "
     read -s mysqlpass
-    if mysql -h ${mysqlhost} -u ${mysqluser} -p${mysqlpass} -e "exit"; then 
+    if mysql -h ${mysqlhost} -u ${mysqluser} -p${mysqlpass} -e "exit"; then
         notValid=false
-    else 
+    else
         echo "${red}Database connection could not be established${normal}"
     fi
 done;
@@ -191,7 +191,7 @@ if [ -n "${inputcompanyname}" ]; then
     companyname=${inputcompanyname}
 fi
 
-echo -n "Enter site URL (including http(s)://) [${siteurl}]: "
+echo -n "Enter Site Domain Name (do not include http://) [${siteurl}]: "
 read inputsiteurl
 if [ -n "${inputsiteurl}" ]; then
     siteurl=${inputsiteurl}

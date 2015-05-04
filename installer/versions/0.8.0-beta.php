@@ -59,7 +59,7 @@ try {
 	$mysql->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	$mysql->beginTransaction();
 
-	$mysqlQueries = file_get_contents("https://raw.githubusercontent.com/PufferPanel/Tools/master/installer/versions/master.sql");
+	$mysqlQueries = file_get_contents("https://raw.githubusercontent.com/PufferPanel/Tools/master/installer/versions/0.8.0-beta.sql");
 	$mysql->exec($mysqlQueries);
 
 	$query = $mysql->prepare("INSERT INTO `acp_settings` (`setting_ref`, `setting_val`) VALUES
@@ -83,8 +83,8 @@ try {
 
 	$query->execute(array(
 		':cname' => $params['companyName'],
-		':murl' => $params['siteUrl'].'/',
-		':mwebsite' => $params['siteUrl'].'/',
+		':murl' => 'http://'.$params['siteUrl'].'/',
+		':mwebsite' => 'http://'.$params['siteUrl'].'/',
 		':aurl' => '//'.$params['siteUrl'].'/assets/'
 	));
 

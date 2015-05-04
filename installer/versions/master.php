@@ -83,9 +83,9 @@ try {
 
 	$query->execute(array(
 		':cname' => $params['companyName'],
-		':murl' => $params['siteUrl'].'/',
-		':mwebsite' => $params['siteUrl'].'/',
-		':aurl' => $params['siteUrl'].'/assets/'
+		':murl' => 'http://'.$params['siteUrl'].'/',
+		':mwebsite' => 'http://'.$params['siteUrl'].'/',
+		':aurl' => '//'.$params['siteUrl'].'/assets/'
 	));
 
 	echo "Settings added\n";
