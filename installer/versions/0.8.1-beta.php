@@ -107,10 +107,16 @@ try {
 	} catch(\Exception $ex) {
 		//ignoring because no user actually existed
 	}
-	$mysql->prepare("GRANT SELECT, UPDATE, DELETE, ALTER, INSERT ON pufferpanel.* TO 'pufferpanel'@'localhost' IDENTIFIED BY :pass")->execute(array(
-		'pass' => $pass
-	));
-	echo "PufferPanel SQL user added\n";
+    $hostquery = $mysql->prepare("select host from information_schema.processlist WHERE ID=connection_id()");
+    $hostquery->execute();
+    $fullHost = parse_url($hostquery->fetchColumn(0));
+    $host = isset($fullHost['host']) ? $fullHost['host'] : $fullHost['path'];
+
+    $mysql->prepare("GRANT SELECT, UPDATE, DELETE, ALTER, INSERT ON pufferpanel.* TO 'pufferpanel'@':host' IDENTIFIED BY :pass")->execute(array(
+        'pass' => $pass,
+        'host' => $host
+    ));
+    echo "PufferPanel SQL user added as pufferpanel@" . $host . "\n";
 
 	$mysql->commit();
 
