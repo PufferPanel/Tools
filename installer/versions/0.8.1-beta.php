@@ -112,7 +112,7 @@ try {
     $fullHost = parse_url($hostquery->fetchColumn(0));
     $host = isset($fullHost['host']) ? $fullHost['host'] : $fullHost['path'];
 
-    $mysql->prepare("GRANT SELECT, UPDATE, DELETE, ALTER, INSERT ON pufferpanel.* TO 'pufferpanel'@:host' IDENTIFIED BY :pass")->execute(array(
+    $mysql->prepare("GRANT SELECT, UPDATE, DELETE, ALTER, INSERT ON pufferpanel.* TO 'pufferpanel'@:host IDENTIFIED BY :pass")->execute(array(
         'pass' => $pass,
         'host' => $host
     ));
