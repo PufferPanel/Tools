@@ -45,11 +45,6 @@ function validateCommand {
     fi
 }
 
-function revertInstall {
-    cd $DIR
-    rm -rf ${installpath}
-}
-
 #TODO
 #Add in a configuration only argument in case of bad configs
 #Add in install-path setting
