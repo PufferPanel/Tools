@@ -5,21 +5,19 @@ green="\e[0;32m"
 normal="\e[0m"
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-usedev=false
 installpath=$(mktemp -d)
-finalpath="/var/www/pufferpanel"
+finalpath="/srv/PufferPanel"
+#TODO
+#Redo web user logic
 webuser="apache"
 test=false
-skiplang=false
 
 mysqlhost="localhost"
 mysqluser="root"
-companyname="ExampleHost"
-siteurl="panel.examplehost.com"
-adminname="admin"
-adminemail="admin@examplehost.com"
 
 #Check distro and set proper webuser
+#TODO
+#Replace function with a more streamline and service driven concept
 distro=`. /etc/os-release 2>/dev/null; echo $ID`
 if [ ${distro} -eq "ubuntu" ]; then
     webuser="www-data";
@@ -38,6 +36,8 @@ function checkInstall {
     fi
 }
 
+#TODO
+#Make this function simply return a boolean, or more likely, move to a more logical function
 function validateCommand {
     if [ $? -ne 0 ]; then
         echo -e "${red}An error occured while installing, halting${normal}";
@@ -50,19 +50,18 @@ function revertInstall {
     rm -rf ${installpath}
 }
 
-while getopts "h?dtu:l" opt; do
+#TODO
+#Add in a configuration only argument in case of bad configs
+#Add in install-path setting
+#Add in web server config to copy
+while getopts "h?tu" opt; do
     case "$opt" in
     h)
         echo "PufferPanel Installer - Version $version"
         echo "Optional parameters: "
-        echo "-d        | If set, will install the latest dev version of the panel"
         echo "-u [user] | Sets the user/group owner of the panel files"
         echo "-t        | Checks if the depedencies are installed without installing panel"
-        echo "-l        | Skips language building"
         exit;
-        ;;
-    d)
-        usedev=true
         ;;
     u)
         webuser=$OPTARG
@@ -70,8 +69,6 @@ while getopts "h?dtu:l" opt; do
     t)
         test=true
         ;;
-    l)
-        skiplang=true
     esac
 done
 
@@ -79,18 +76,9 @@ shift $((OPTIND-1))
 
 [ "$1" = "--" ] && shift
 
-echo -n "PufferPanel Install Location [${finalpath}]: "
-read inputFinalPath
-
-if [ -n "${inputFinalPath}" ]; then
-    finalpath=${inputFinalPath}
-fi
-
 echo "PufferPanel Installer - Version $version"
 echo "------"
 echo "Install path: ${finalpath}"
-echo "Temp path: ${installpath}"
-echo "Using dev: ${usedev}"
 echo "Testing only: ${test}"
 echo "Skipping languages: ${skiplang}"
 echo "------"
@@ -156,6 +144,20 @@ else
 fi
 
 echo "-----"
+echo "Extracting PufferPanel to ${installpath}"
+installTar=$(mktemp -t XXXXX.tar.gz);
+tar -xzf ${installTar} ${installpath}
+
+echo "-----"
+echo "Installing Composer"
+curl -sS https://getcomposer.org/installer | php -- --install-dir=${installpath}/tools
+validateCommand
+php -d ${installpath} tools/composer.phar install
+validateCommand
+
+#TODO
+#Validate remote hosts work correctly, along with non-standard ports
+echo "-----"
 echo "Preparing MySQL connection"
 echo -e "${red}For this step, please use either root or an account with database creation and GRANT${normal}"
 
@@ -182,94 +184,15 @@ while ${notValid}; do
     fi
 done;
 
-echo ""
-echo "-----"
-echo "Preparing Site configuration"
-echo -n "Enter company name [${companyname}]: "
-read inputcompanyname
-if [ -n "${inputcompanyname}" ]; then
-    companyname=${inputcompanyname}
-fi
-
-echo -n "Enter Site Domain Name (do not include http://) [${siteurl}]: "
-read inputsiteurl
-if [ -n "${inputsiteurl}" ]; then
-    siteurl=${inputsiteurl}
-fi
-
-echo "-----"
-echo "Preparing admin account"
-echo -n "Username [${adminname}]: "
-read inputadminname
-if [ -n "${inputadminname}" ]; then
-    adminname=${inputadminname}
-fi
-
-echo -n "Email [${adminemail}]: "
-read inputadminemail
-if [ -n "${inputadminemail}" ]; then
-    adminemail=${inputadminemail}
-fi
-
-echo -n "Password: "
-read -s adminpass
-echo ""
-
-echo "-----"
-echo -e "${green}Configuration options complete, beginning installation process${normal}"
-
-echo "-----"
-echo "Cloning PufferPanel to ${installpath}"
-
-git clone https://github.com/PufferPanel/PufferPanel.git ${installpath}
-validateCommand
-
-echo "-----"
-cd $installpath
-ppversion=$(git describe --abbrev=0 --tags)
-if ${usedev}; then
-    ppversion="master"
-    echo "Using dev version"
-else
-    echo "Checking out ${ppversion}"
-    git checkout tags/${ppversion}
-    validateCommand
-fi
-
-echo "-----"
-echo "Installing Composer"
-curl -sS https://getcomposer.org/installer | php
-validateCommand
-php composer.phar install
-validateCommand
-
-cd $DIR
-
 echo "-----"
 echo "Executing panel version installer"
-
-installFile=$(mktemp -t XXXXX.php);
-curl -sS -o $installFile https://raw.githubusercontent.com/PufferPanel/Tools/master/installer/versions/${ppversion}.php
-
-php -f $installFile mysqlHost="$mysqlhost" mysqlUser="$mysqluser" mysqlPass="$mysqlpass" companyName="$companyname" siteUrl="$siteurl" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass" installDir="$installpath"
-if [ $? -ne 0 ]; then
-    echo -e "${red}An error occured while installing, halting${normal}";
-    revertInstall
-    exit
-fi
-
-echo "-----"
-if $skiplang; then
-    echo "Skipping language building"
-else
-    echo "Building language files"
-    curl -sS https://raw.githubusercontent.com/PufferPanel/Tools/master/language/language-builder | bash -s -- -p $installpath
-fi
+#TODO
+#This will be located in the panel directory, and will generate just the config.json
 
 echo "-----"
 echo "Finishing install"
-mkdir -p ${finalpath}
 
+mkdir -p ${finalpath}
 shopt -s dotglob
 mv ${installpath}/* ${finalpath}
 chmod -R 777 ${finalpath}/src/logs
@@ -285,6 +208,6 @@ else
   echo -e "${red}${webuser} user not found, cannot chown to correct user${normal}"
 fi
 
-echo -e "${green}PufferPanel has installed successfully."
-echo -e "If the above chown is not the correct user or did not work, please manually chown the ${finalpath} folder${normal}"
+echo -e "${green}PufferPanel has installed successfully.${normal}"
+echo -e "If the above chown is not the correct user or did not work, please manually chown the ${finalpath} folder"
 exit
