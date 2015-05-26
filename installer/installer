@@ -12,9 +12,6 @@ finalpath="/srv/PufferPanel"
 webuser="apache"
 test=false
 
-mysqlhost="localhost"
-mysqluser="root"
-
 #Check distro and set proper webuser
 #TODO
 #Replace function with a more streamline and service driven concept
@@ -97,32 +94,27 @@ checkInstall git Git
 checkInstall mysql MySQL-client
 
 #Check if PHP dependencies are installed
-if $phpInstalled; then
-    result=$(php -r 'exit (version_compare(PHP_VERSION, "5.5.0") < 0 ? "1" : "0");');
-    if [ "$result" -eq "0" ]; then
-        echo -e "PHP 5.5.0+: [${green}Installed${normal}]";
-    else
-        echo -e "PHP 5.5.0+: [${red}Not Installed${normal}]";
-        canInstall=false
-    fi
-
-    extensions=("curl" "hash" "openssl" "mcrypt" "pdo" "pdo_mysql")
-    for i in ${extensions[@]}; do
-        phpcmd=`php <<EOF
-<?php exit (extension_loaded("${i}") ? "1" : "0"); ?>
-EOF`
-        result=$phpcmd;
-        if [ "$result" -ne "0" ]; then
-            echo -e "PHP-${i}: [${green}Installed${normal}]";
-        else
-            echo -e "PHP-${i}: [${red}Not Installed${normal}]";
-            canInstall=false
-        fi
-    done
+result=$(php -r 'exit (version_compare(PHP_VERSION, "5.5.0") < 0 ? "1" : "0");' >/dev/null 2>&1);
+if [ "$result" -eq "0" ]; then
+    echo -e "PHP 5.5.0+: [${green}Installed${normal}]";
 else
-    echo "Since PHP-cli is not installed, assuming no extensions are installed"
+    echo -e "PHP 5.5.0+: [${red}Not Installed${normal}]";
     canInstall=false
 fi
+
+extensions=("curl" "hash" "openssl" "mcrypt" "pdo" "pdo_mysql")
+for i in ${extensions[@]}; do
+    phpcmd=`php <<EOF
+<?php exit (extension_loaded("${i}") ? "1" : "0"); ?>
+EOF`
+    result=$($phpcmd >/dev/null 2>&1);
+    if [ "$result" -ne "0" ]; then
+        echo -e "PHP-${i}: [${green}Installed${normal}]";
+    else
+        echo -e "PHP-${i}: [${red}Not Installed${normal}]";
+        canInstall=false
+    fi
+done
 
 echo "------"
 
@@ -155,6 +147,9 @@ validateCommand
 echo "-----"
 echo "Preparing MySQL connection"
 echo -e "${red}For this step, please use either root or an account with database creation and GRANT${normal}"
+
+mysqlhost="localhost"
+mysqluser="root"
 
 echo -n "MySQL Host [${mysqlhost}]: "
 read inputmysqlhost
@@ -206,3 +201,6 @@ fi
 echo -e "${green}PufferPanel has installed successfully.${normal}"
 echo -e "If the above chown is not the correct user or did not work, please manually chown the ${finalpath} folder"
 exit
+
+##ATTACHED RESOURCES
+__PUFFERPANEL.TAR.GZ__
