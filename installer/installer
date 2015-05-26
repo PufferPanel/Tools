@@ -15,15 +15,12 @@ test=false
 #Check distro and set proper webuser
 #TODO
 #Replace function with a more streamline and service driven concept
-distro=`. /etc/os-release 2>/dev/null; echo $ID`
-if [ ${distro} -eq "ubuntu" ]; then
-    webuser="www-data";
-elif [ ${distro} -eq "debian" ]; then
-    webuser="www-data";
-fi
+#Will no longer check distro version. We will check the web server to get this information
 
 
 #This is a helper function to allow for less repetition of command checks
+#TODO
+#This should be returning true/false, not setting a global variable
 function checkInstall {
     if type "$1" 1>/dev/null 2>&1; then
         echo -e "$2: [${green}Installed${normal}]";
@@ -76,6 +73,8 @@ echo "Skipping languages: ${skiplang}"
 echo "------"
 echo "Checking dependencies:"
 
+#TODO
+#Improve entire dep checking
 canInstall=true
 
 #Check if PHP is installed
@@ -144,6 +143,8 @@ validateCommand
 
 #TODO
 #Validate remote hosts work correctly, along with non-standard ports
+#Should be callable without executing above
+#Likely can rewrite this logic to be more clear
 echo "-----"
 echo "Preparing MySQL connection"
 echo -e "${red}For this step, please use either root or an account with database creation and GRANT${normal}"
@@ -187,6 +188,8 @@ shopt -s dotglob
 mv ${installpath}/* ${finalpath}
 chmod -R 777 ${finalpath}/src/logs
 
+#TODO
+#Validate if this is needed, and if so, if it could be redone a little
 getent passwd ${webuser} > /dev/null
 if [ $? -eq 0 ]; then
   echo "Chowning files to ${webuser} user"
