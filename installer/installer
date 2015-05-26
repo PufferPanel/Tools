@@ -21,9 +21,9 @@ adminemail="admin@examplehost.com"
 
 #Check distro and set proper webuser
 distro=`. /etc/os-release 2>/dev/null; echo $ID`
-if [ ${distro} -eq "ubuntu" ]; then
+if [ "${distro}" -eq "ubuntu" ]; then
     webuser="www-data";
-elif [ ${distro} -eq "debian" ]; then
+elif [ "${distro}"" -eq "debian" ]; then
     webuser="www-data";
 fi
 
