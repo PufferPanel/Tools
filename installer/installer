@@ -209,6 +209,10 @@ done;
 
 echo "-----"
 echo "Executing panel version installer"
+if ! php -f ${installpath}/install/install.php --host=${mysqlhost} --port=${mysqlport} --user={mysqluser} --pass={mysqlpass}; then
+    echo "${RED}Executing database install has failed${NORMAL}"
+    exit;
+fi
 #TODO: This will be located in the panel directory, and will generate just the config.json
 
 echo "-----"
