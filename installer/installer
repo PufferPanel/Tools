@@ -155,7 +155,6 @@ php -d ${installpath} tools/composer.phar install
 validateCommand
 
 #TODO
-#Validate remote hosts work correctly, along with non-standard ports
 #Should be callable without executing above
 #Likely can rewrite this logic to be more clear
 echo "-----"
@@ -164,11 +163,18 @@ echo -e "${RED}For this step, please use either root or an account with database
 
 mysqlhost="localhost"
 mysqluser="root"
+mysqlport="3306"
 
 echo -n "MySQL Host [${mysqlhost}]: "
 read inputmysqlhost
 if [ -n "${inputmysqlhost}" ]; then
     mysqlhost=${inputmysqlhost}
+fi
+
+echo -n "MySQL Port [${mysqlport}]: "
+read inputmysqlport
+if [ -n "${inputmysqlport}" ]; then
+    mysqlhost=${inputmysqlport}
 fi
 
 echo -n "MySQL Username [${mysqluser}]: "
@@ -181,7 +187,7 @@ notValid=true
 while ${notValid}; do
     echo -n "MySQL Password: "
     read -s mysqlpass
-    if mysql -h ${mysqlhost} -u ${mysqluser} -p${mysqlpass} -e "exit"; then
+    if mysql --host=${mysqlhost} --port=${mysqlport} -user=${mysqluser} -password=${mysqlpass} -e "exit"; then
         notValid=false
     else
         echo "${RED}Database connection could not be established${NORMAL}"
