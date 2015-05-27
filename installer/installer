@@ -108,8 +108,7 @@ if ! isInstalled mysql MySQL-client; then
 fi
 
 #Check if PHP dependencies are installed
-result=$(php -r 'exit (version_compare(PHP_VERSION, "5.5.0") < 0 ? "1" : "0");' >/dev/null 2>&1);
-if [ "$result" -eq "0" ]; then
+if php -r 'exit (version_compare(PHP_VERSION, "5.5.0") < 0 ? "1" : "0");' >/dev/null 2>&1; then
     echo -e "PHP 5.5.0+: [${GREEN}Installed${NORMAL}]";
 else
     echo -e "PHP 5.5.0+: [${RED}Not Installed${NORMAL}]";
@@ -148,7 +147,12 @@ installpath=$(mktemp -d)
 echo "-----"
 echo "Extracting PufferPanel to ${installpath}"
 installTar=$(mktemp -t XXXXX.tar.gz);
-tar -xzf ${installTar} ${installpath}
+#TODO: Add extractor to remove tar.gz from script to above reference
+if ! tar -xzf ${installTar} ${installpath}; then
+    echo -e "${RED}An error occured while installing, halting${NORMAL}";
+    exit;
+fi
+
 
 echo "-----"
 echo "Installing Composer"
