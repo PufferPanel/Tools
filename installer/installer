@@ -217,7 +217,7 @@ echo "Finishing install"
 mkdir -p ${finalpath}
 shopt -s dotglob
 mv ${installpath}/* ${finalpath}
-chmod -R 777 ${finalpath}/src/logs
+chmod -R 774 ${finalpath}/src/{core,logs,cache}
 
 #TODO: Validate if this is needed, and if so, if it could be redone a little
 
