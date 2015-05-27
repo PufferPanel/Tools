@@ -16,21 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 
-version=0.2.0
-
-#TODO
-#Move these globals around, it makes no sense to have execute, function declaration, then more execute
-red="\e[0;31m"
-green="\e[0;32m"
-normal="\e[0m"
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-installpath=$(mktemp -d)
-finalpath="/srv/PufferPanel"
-#TODO
-#Redo web user logic
-webuser="apache"
-test=false
-
 #Check distro and set proper webuser
 #TODO
 #Replace function with a more streamline and service driven concept
@@ -41,21 +26,32 @@ test=false
 #This should be returning true/false, not setting a global variable
 function checkInstall {
     if type "$1" 1>/dev/null 2>&1; then
-        echo -e "$2: [${green}Installed${normal}]";
+        echo -e "$2: [${GREEN}Installed${NORMAL}]";
     else
-        echo -e "$2: [${red}Not Installed${normal}]";
+        echo -e "$2: [${RED}Not Installed${NORMAL}]";
         canInstall=false
     fi
 }
 
-#TODO
-#Make this function simply return a boolean, or more likely, move to a more logical function
+#TODO: Make this function simply return a boolean, or more likely, move to a more logical function
 function validateCommand {
     if [ $? -ne 0 ]; then
-        echo -e "${red}An error occured while installing, halting${normal}";
+        echo -e "${RED}An error occured while installing, halting${NORMAL}";
         exit
     fi
 }
+
+#CONSTANTS
+RED="\e[0;31m"
+GREEN="\e[0;32m"
+NORMAL="\e[0m"
+VERSION=0.2.0
+
+#Variables
+finalpath="/srv/PufferPanel"
+#TODO: Redo web user logic
+webuser="apache"
+test=false
 
 #TODO
 #Add in a configuration only argument in case of bad configs
@@ -64,7 +60,7 @@ function validateCommand {
 while getopts "h?tu" opt; do
     case "$opt" in
     h)
-        echo "PufferPanel Installer - Version $version"
+        echo "PufferPanel Installer - Version ${VERSION}"
         echo "Optional parameters: "
         echo "-u [user] | Sets the user/group owner of the panel files"
         echo "-t        | Checks if the depedencies are installed without installing panel"
@@ -91,8 +87,7 @@ echo "Skipping languages: ${skiplang}"
 echo "------"
 echo "Checking dependencies:"
 
-#TODO
-#Improve entire dep checking
+#TODO: Improve entire dep checking
 canInstall=true
 
 #Check if PHP is installed
@@ -113,9 +108,9 @@ checkInstall mysql MySQL-client
 #Check if PHP dependencies are installed
 result=$(php -r 'exit (version_compare(PHP_VERSION, "5.5.0") < 0 ? "1" : "0");' >/dev/null 2>&1);
 if [ "$result" -eq "0" ]; then
-    echo -e "PHP 5.5.0+: [${green}Installed${normal}]";
+    echo -e "PHP 5.5.0+: [${GREEN}Installed${NORMAL}]";
 else
-    echo -e "PHP 5.5.0+: [${red}Not Installed${normal}]";
+    echo -e "PHP 5.5.0+: [${RED}Not Installed${NORMAL}]";
     canInstall=false
 fi
 
@@ -126,9 +121,9 @@ for i in ${extensions[@]}; do
 EOF`
     result=$($phpcmd >/dev/null 2>&1);
     if [ "$result" -ne "0" ]; then
-        echo -e "PHP-${i}: [${green}Installed${normal}]";
+        echo -e "PHP-${i}: [${GREEN}Installed${NORMAL}]";
     else
-        echo -e "PHP-${i}: [${red}Not Installed${normal}]";
+        echo -e "PHP-${i}: [${RED}Not Installed${NORMAL}]";
         canInstall=false
     fi
 done
@@ -137,15 +132,17 @@ echo "------"
 
 if ${canInstall}; then
     if ${test}; then
-        echo -e "${green}All dependencies are validated${normal}"
+        echo -e "${GREEN}All dependencies are validated${NORMAL}"
         exit;
     else
-        echo -e "${green}All dependencies are installed, processing with installation${normal}";
+        echo -e "${GREEN}All dependencies are installed, processing with installation${NORMAL}";
     fi
 else
-    echo -e "${red}Please ensure all dependencies are installed${normal}";
+    echo -e "${RED}Please ensure all dependencies are installed${NORMAL}";
     exit;
 fi
+
+installpath=$(mktemp -d)
 
 echo "-----"
 echo "Extracting PufferPanel to ${installpath}"
@@ -165,7 +162,7 @@ validateCommand
 #Likely can rewrite this logic to be more clear
 echo "-----"
 echo "Preparing MySQL connection"
-echo -e "${red}For this step, please use either root or an account with database creation and GRANT${normal}"
+echo -e "${RED}For this step, please use either root or an account with database creation and GRANT${NORMAL}"
 
 mysqlhost="localhost"
 mysqluser="root"
@@ -189,14 +186,13 @@ while ${notValid}; do
     if mysql -h ${mysqlhost} -u ${mysqluser} -p${mysqlpass} -e "exit"; then
         notValid=false
     else
-        echo "${red}Database connection could not be established${normal}"
+        echo "${RED}Database connection could not be established${NORMAL}"
     fi
 done;
 
 echo "-----"
 echo "Executing panel version installer"
-#TODO
-#This will be located in the panel directory, and will generate just the config.json
+#TODO: This will be located in the panel directory, and will generate just the config.json
 
 echo "-----"
 echo "Finishing install"
@@ -206,20 +202,19 @@ shopt -s dotglob
 mv ${installpath}/* ${finalpath}
 chmod -R 777 ${finalpath}/src/logs
 
-#TODO
-#Validate if this is needed, and if so, if it could be redone a little
+#TODO: Validate if this is needed, and if so, if it could be redone a little
 getent passwd ${webuser} > /dev/null
 if [ $? -eq 0 ]; then
   echo "Chowning files to ${webuser} user"
   chown -R ${webuser}:${webuser} $finalpath
   if [ $? -ne 0 ]; then
-    echo -e "${red}Could not chown ${finalpath} to ${webuser}, please do this manually${normal}"
+    echo -e "${RED}Could not chown ${finalpath} to ${webuser}, please do this manually${NORMAL}"
   fi
 else
-  echo -e "${red}${webuser} user not found, cannot chown to correct user${normal}"
+  echo -e "${RED}${webuser} user not found, cannot chown to correct user${NORMAL}"
 fi
 
-echo -e "${green}PufferPanel has installed successfully.${normal}"
+echo -e "${GREEN}PufferPanel has installed successfully.${NORMAL}"
 echo -e "If the above chown is not the correct user or did not work, please manually chown the ${finalpath} folder"
 exit
 
