@@ -16,22 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 
-#Function declaration
-#TODO: This should be returning true/false, not setting a global variable
-function checkInstall {
+######################
+
+# Function declaration
+function isInstalled {
     if type "$1" 1>/dev/null 2>&1; then
         echo -e "$2: [${GREEN}Installed${NORMAL}]";
+        return 0;
     else
         echo -e "$2: [${RED}Not Installed${NORMAL}]";
-        canInstall=false
-    fi
-}
-
-#TODO: Make this function simply return a boolean, or more likely, move to a more logical function
-function validateCommand {
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}An error occured while installing, halting${NORMAL}";
-        exit
+        return 1;
     fi
 }
 
@@ -42,17 +36,25 @@ function printHelp {
     echo "-t        | Checks if the depedencies are installed without installing panel"
 }
 
-#CONSTANTS
+######################
+
+# CONSTANTS
 RED="\e[0;31m"
 GREEN="\e[0;32m"
 NORMAL="\e[0m"
 VERSION=0.2.0
 
-#Variables
+######################
+
+# Variables
 finalpath="/srv/PufferPanel"
 #TODO: Redo web user logic
 webuser="apache"
 test=false
+
+######################
+
+# Begin execution process
 
 #TODO
 #Add in a configuration only argument in case of bad configs
@@ -81,7 +83,6 @@ echo "PufferPanel Installer - Version $version"
 echo "------"
 echo "Install path: ${finalpath}"
 echo "Testing only: ${test}"
-echo "Skipping languages: ${skiplang}"
 echo "------"
 echo "Checking dependencies:"
 
@@ -89,19 +90,22 @@ echo "Checking dependencies:"
 canInstall=true
 
 #Check if PHP is installed
-checkInstall php PHP
-
-if $canInstall; then
+if isInstalled php PHP; then
     phpInstalled=true
 else
+    canInstall=false
     phpInstalled=false
 fi
 
 #Check if Git is installed
-checkInstall git Git
+if ! checkInstall git Git; then
+    canInstall=false
+fi
 
 #Check if MySQL is installed
-checkInstall mysql MySQL-client
+if ! checkInstall mysql MySQL-client; then
+    canInstall=false
+fi
 
 #Check if PHP dependencies are installed
 result=$(php -r 'exit (version_compare(PHP_VERSION, "5.5.0") < 0 ? "1" : "0");' >/dev/null 2>&1);
@@ -117,8 +121,7 @@ for i in ${extensions[@]}; do
     phpcmd=`php <<EOF
 <?php exit (extension_loaded("${i}") ? "1" : "0"); ?>
 EOF`
-    result=$($phpcmd >/dev/null 2>&1);
-    if [ "$result" -ne "0" ]; then
+    if ${phpcmd} >/dev/null 2>&1; then
         echo -e "PHP-${i}: [${GREEN}Installed${NORMAL}]";
     else
         echo -e "PHP-${i}: [${RED}Not Installed${NORMAL}]";
@@ -149,10 +152,16 @@ tar -xzf ${installTar} ${installpath}
 
 echo "-----"
 echo "Installing Composer"
-curl -sS https://getcomposer.org/installer | php -- --install-dir=${installpath}/tools
-validateCommand
-php -d ${installpath} tools/composer.phar install
-validateCommand
+
+if ! curl -sS https://getcomposer.org/installer | php -- --install-dir=${installpath}/tools; then
+    echo -e "${RED}An error occured while installing, halting${NORMAL}";
+    exit;
+fi
+
+if ! php -d ${installpath} tools/composer.phar install; then
+    echo -e "${RED}An error occured while installing, halting${NORMAL}";
+    exit;
+fi
 
 #TODO
 #Should be callable without executing above
@@ -207,11 +216,10 @@ mv ${installpath}/* ${finalpath}
 chmod -R 777 ${finalpath}/src/logs
 
 #TODO: Validate if this is needed, and if so, if it could be redone a little
-getent passwd ${webuser} > /dev/null
-if [ $? -eq 0 ]; then
-  echo "Chowning files to ${webuser} user"
-  chown -R ${webuser}:${webuser} $finalpath
-  if [ $? -ne 0 ]; then
+
+if getent passwd ${webuser} > /dev/null; then
+  echo "Chowning files to ${webuser} user"  
+  if ! chown -R ${webuser}:${webuser} $finalpath; then
     echo -e "${RED}Could not chown ${finalpath} to ${webuser}, please do this manually${NORMAL}"
   fi
 else
