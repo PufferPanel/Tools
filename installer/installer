@@ -16,14 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 
-#Check distro and set proper webuser
-#TODO
-#Replace function with a more streamline and service driven concept
-#Will no longer check distro version. We will check the web server to get this information
-
-#This is a helper function to allow for less repetition of command checks
-#TODO
-#This should be returning true/false, not setting a global variable
+#Function declaration
+#TODO: This should be returning true/false, not setting a global variable
 function checkInstall {
     if type "$1" 1>/dev/null 2>&1; then
         echo -e "$2: [${GREEN}Installed${NORMAL}]";
@@ -39,6 +33,13 @@ function validateCommand {
         echo -e "${RED}An error occured while installing, halting${NORMAL}";
         exit
     fi
+}
+
+function printHelp {
+    echo "PufferPanel Installer - Version ${VERSION}"
+    echo "Optional parameters: "
+    echo "-u [user] | Sets the user/group owner of the panel files"
+    echo "-t        | Checks if the depedencies are installed without installing panel"
 }
 
 #CONSTANTS
@@ -60,10 +61,7 @@ test=false
 while getopts "h?tu" opt; do
     case "$opt" in
     h)
-        echo "PufferPanel Installer - Version ${VERSION}"
-        echo "Optional parameters: "
-        echo "-u [user] | Sets the user/group owner of the panel files"
-        echo "-t        | Checks if the depedencies are installed without installing panel"
+        printHelp
         exit;
         ;;
     u)
