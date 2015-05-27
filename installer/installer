@@ -98,12 +98,12 @@ else
 fi
 
 #Check if Git is installed
-if ! checkInstall git Git; then
+if ! isInstalled git Git; then
     canInstall=false
 fi
 
 #Check if MySQL is installed
-if ! checkInstall mysql MySQL-client; then
+if ! isInstalled mysql MySQL-client; then
     canInstall=false
 fi
 
