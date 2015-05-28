@@ -48,19 +48,16 @@ VERSION=0.2.0
 
 # Variables
 finalpath="/srv/PufferPanel"
-#TODO: Redo web user logic
 webuser="apache"
 test=false
+mysqlonly=true
+webservice="auto"
 
 ######################
 
 # Begin execution process
 
-#TODO
-#Add in a configuration only argument in case of bad configs
-#Add in install-path setting
-#Add in web server config to copy
-while getopts "h?tu" opt; do
+while getopts "hutp:w:" opt; do
     case "$opt" in
     h)
         printHelp
@@ -72,6 +69,19 @@ while getopts "h?tu" opt; do
     t)
         test=true
         ;;
+    p)
+        finalpath=$OPTARG
+        ;;
+    w)
+        # Validate option pass is either apache/nginx/none/auto
+        case $OPTARG in
+            apache|nginx|none|auto)
+                webservice=$OPTARG
+                ;;
+            *)
+                echo "${RED}Invalid web service passed${NORMAL}"
+                ;;
+        esac
     esac
 done
 
@@ -145,7 +155,7 @@ fi
 installpath=$(mktemp -d)
 
 echo "-----"
-echo "Extracting PufferPanel to ${installpath}"
+echo "Extracting PufferPanel"
 match=$(grep --text --line-number '^__PUFFERPANEL.TAR.GZ__$' $0 | cut -d ':' -f 1)
 payload_start=$((match + 1))
 if ! tail -n +${payload_start} $0 | tar -xzf - ${installpath}; then
@@ -153,10 +163,7 @@ if ! tail -n +${payload_start} $0 | tar -xzf - ${installpath}; then
     exit
 fi
 
-
-echo "-----"
 echo "Installing Composer"
-
 if ! curl -sS https://getcomposer.org/installer | php -- --install-dir=${installpath}/tools; then
     echo -e "${RED}An error occured while installing, halting${NORMAL}"
     exit
@@ -177,6 +184,7 @@ echo -e "${RED}For this step, please use either root or an account with database
 mysqlhost="localhost"
 mysqluser="root"
 mysqlport="3306"
+mysqlpass="root"
 
 echo -n "MySQL Host [${mysqlhost}]: "
 read inputmysqlhost
@@ -196,26 +204,32 @@ if [ -n "${inputmysqluser}" ]; then
     mysqluser=${inputmysqluser}
 fi
 
-notValid=true
-while ${notValid}; do
+until mysql --host=${mysqlhost} --port=${mysqlport} -user=${mysqluser} -password=${mysqlpass} -e "exit"; do
     echo -n "MySQL Password: "
     read -s mysqlpass
-    if mysql --host=${mysqlhost} --port=${mysqlport} -user=${mysqluser} -password=${mysqlpass} -e "exit"; then
-        notValid=false
-    else
-        echo "${RED}Database connection could not be established${NORMAL}"
-    fi
 done
 
-echo "-----"
 echo "Executing panel version installer"
 if ! php -f ${installpath}/install/install.php --host=${mysqlhost} --port=${mysqlport} --user={mysqluser} --pass={mysqlpass}; then
     echo "${RED}Executing database install has failed${NORMAL}"
     exit
 fi
-#TODO: This will be located in the panel directory, and will generate just the config.json
 
-echo "-----"
+if [[ "${webservice}" -ne "none" ]]; then
+    echo "Installing web config"
+    if [[ "${webservice}" -eq "auto" ]]; then
+        #TODO: Add in web service detection logic
+    fi
+    case "$webservice" in
+        nginx)
+            #TODO: Generate/Move config to nginx folder
+            ;;
+        apache)
+            #TODO: Generate/Move config to apache folder
+            ;;
+    esac
+fi
+
 echo "Finishing install"
 
 mkdir -p ${finalpath}
