@@ -21,11 +21,11 @@
 # Function declaration
 function isInstalled {
     if type "$1" 1>/dev/null 2>&1; then
-        echo -e "$2: [${GREEN}Installed${NORMAL}]";
-        return 0;
+        echo -e "$2: [${GREEN}Installed${NORMAL}]"
+        return 0
     else
-        echo -e "$2: [${RED}Not Installed${NORMAL}]";
-        return 1;
+        echo -e "$2: [${RED}Not Installed${NORMAL}]"
+        return 1
     fi
 }
 
@@ -64,7 +64,7 @@ while getopts "h?tu" opt; do
     case "$opt" in
     h)
         printHelp
-        exit;
+        exit
         ;;
     u)
         webuser=$OPTARG
@@ -109,9 +109,9 @@ fi
 
 #Check if PHP dependencies are installed
 if php -r 'exit (version_compare(PHP_VERSION, "5.5.0") < 0 ? "1" : "0");' >/dev/null 2>&1; then
-    echo -e "PHP 5.5.0+: [${GREEN}Installed${NORMAL}]";
+    echo -e "PHP 5.5.0+: [${GREEN}Installed${NORMAL}]"
 else
-    echo -e "PHP 5.5.0+: [${RED}Not Installed${NORMAL}]";
+    echo -e "PHP 5.5.0+: [${RED}Not Installed${NORMAL}]"
     canInstall=false
 fi
 
@@ -121,9 +121,9 @@ for i in ${extensions[@]}; do
 <?php exit (extension_loaded("${i}") ? "1" : "0"); ?>
 EOF`
     if ${phpcmd} >/dev/null 2>&1; then
-        echo -e "PHP-${i}: [${GREEN}Installed${NORMAL}]";
+        echo -e "PHP-${i}: [${GREEN}Installed${NORMAL}]"
     else
-        echo -e "PHP-${i}: [${RED}Not Installed${NORMAL}]";
+        echo -e "PHP-${i}: [${RED}Not Installed${NORMAL}]"
         canInstall=false
     fi
 done
@@ -133,24 +133,24 @@ echo "------"
 if ${canInstall}; then
     if ${test}; then
         echo -e "${GREEN}All dependencies are validated${NORMAL}"
-        exit;
+        exit
     else
-        echo -e "${GREEN}All dependencies are installed, processing with installation${NORMAL}";
+        echo -e "${GREEN}All dependencies are installed, processing with installation${NORMAL}"
     fi
 else
-    echo -e "${RED}Please ensure all dependencies are installed${NORMAL}";
-    exit;
+    echo -e "${RED}Please ensure all dependencies are installed${NORMAL}"
+    exit
 fi
 
 installpath=$(mktemp -d)
 
 echo "-----"
 echo "Extracting PufferPanel to ${installpath}"
-installTar=$(mktemp -t XXXXX.tar.gz);
-#TODO: Add extractor to remove tar.gz from script to above reference
-if ! tar -xzf ${installTar} ${installpath}; then
-    echo -e "${RED}An error occured while installing, halting${NORMAL}";
-    exit;
+match=$(grep --text --line-number '^__PUFFERPANEL.TAR.GZ__$' $0 | cut -d ':' -f 1)
+payload_start=$((match + 1))
+if ! tail -n +${payload_start} $0 | tar -xzf - ${installpath}; then
+    echo -e "${RED}An error occured while installing, halting${NORMAL}"
+    exit
 fi
 
 
@@ -158,13 +158,13 @@ echo "-----"
 echo "Installing Composer"
 
 if ! curl -sS https://getcomposer.org/installer | php -- --install-dir=${installpath}/tools; then
-    echo -e "${RED}An error occured while installing, halting${NORMAL}";
-    exit;
+    echo -e "${RED}An error occured while installing, halting${NORMAL}"
+    exit
 fi
 
 if ! php -d ${installpath} tools/composer.phar install; then
-    echo -e "${RED}An error occured while installing, halting${NORMAL}";
-    exit;
+    echo -e "${RED}An error occured while installing, halting${NORMAL}"
+    exit
 fi
 
 #TODO
@@ -205,13 +205,13 @@ while ${notValid}; do
     else
         echo "${RED}Database connection could not be established${NORMAL}"
     fi
-done;
+done
 
 echo "-----"
 echo "Executing panel version installer"
 if ! php -f ${installpath}/install/install.php --host=${mysqlhost} --port=${mysqlport} --user={mysqluser} --pass={mysqlpass}; then
     echo "${RED}Executing database install has failed${NORMAL}"
-    exit;
+    exit
 fi
 #TODO: This will be located in the panel directory, and will generate just the config.json
 
