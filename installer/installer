@@ -42,7 +42,8 @@ function printHelp {
 RED="\e[0;31m"
 GREEN="\e[0;32m"
 NORMAL="\e[0m"
-VERSION=0.2.0
+VERSION="0.2.0"
+PANELVERSION="0.8.1-beta"
 
 ######################
 
@@ -52,6 +53,7 @@ webuser="apache"
 test=false
 mysqlonly=true
 webservice="auto"
+installDev=false
 
 ######################
 
@@ -82,6 +84,9 @@ while getopts "hutp:w:" opt; do
                 echo "${RED}Invalid web service passed${NORMAL}"
                 ;;
         esac
+    D)
+       installDev=true
+       ;;
     esac
 done
 
@@ -149,29 +154,42 @@ if ${canInstall}; then
     fi
 else
     echo -e "${RED}Please ensure all dependencies are installed${NORMAL}"
-    exit
+    exit 1
 fi
 
 installpath=$(mktemp -d)
 
 echo "-----"
 echo "Extracting PufferPanel"
-match=$(grep --text --line-number '^__PUFFERPANEL.TAR.GZ__$' $0 | cut -d ':' -f 1)
-payload_start=$((match + 1))
-if ! tail -n +${payload_start} $0 | tar -xzf - ${installpath}; then
-    echo -e "${RED}An error occured while installing, halting${NORMAL}"
-    exit
+if installDev; then
+        if ! git clone https://github.com/PufferPanel/PufferPanel.git ${installpath}; then
+            echo -e "{RED}Failed to clone repo manually${NORMAL}"
+            exit 1
+        fi
+else
+    match=$(grep --text --line-number '^__PUFFERPANEL.TAR.GZ__$' $0 | cut -d ':' -f 1)
+    payload_start=$((match + 1))
+    if ! tail -n +${payload_start} $0 | tar -xzf - ${installpath}; then
+        echo -e "${RED}An error occured while installing, falling back to manual${NORMAL}"
+        gitcmd= \
+           git clone https://github.com/PufferPanel/PufferPanel.git ${installpath} && \
+           git --git-dir=${installpath} checkout tags/${PANELVERSION}
+        if ! gitcmd; then
+            echo -e "{RED}Failed to clone repo manually${NORMAL}"
+            exit 1
+        fi
+    fi
 fi
 
 echo "Installing Composer"
 if ! curl -sS https://getcomposer.org/installer | php -- --install-dir=${installpath}/tools; then
     echo -e "${RED}An error occured while installing, halting${NORMAL}"
-    exit
+    exit 1
 fi
 
 if ! php -d ${installpath} tools/composer.phar install; then
     echo -e "${RED}An error occured while installing, halting${NORMAL}"
-    exit
+    exit 1
 fi
 
 #TODO
@@ -212,7 +230,7 @@ done
 echo "Executing panel version installer"
 if ! php -f ${installpath}/install/install.php --host=${mysqlhost} --port=${mysqlport} --user={mysqluser} --pass={mysqlpass}; then
     echo "${RED}Executing database install has failed${NORMAL}"
-    exit
+    exit 1
 fi
 
 if [[ "${webservice}" -ne "none" ]]; then
