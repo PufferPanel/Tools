@@ -32,8 +32,12 @@ function isInstalled {
 function printHelp {
     echo "PufferPanel Installer - Version ${VERSION} (${PANELVERSION})"
     echo "Optional parameters: "
-    echo "-u [user] | Sets the user/group owner of the panel files"
-    echo "-t        | Checks if the depedencies are installed without installing panel"
+    echo "-h           | Prints this help page"
+    echo "-u [user]    | Sets the user/group owner of the panel files"
+    echo "-t           | Checks if the depedencies are installed without installing panel"
+    echo "-p [path]    | Sets the install path for the panel (default /srv/PufferPanel)"
+    echo "-w [service] | Specifies the web service to use, accepts nginx/apache/none/auto (default auto)"
+    echo "-D           | Downloads and installs the latest dev build"
 }
 
 function findWebService() {
@@ -61,7 +65,6 @@ PANELVERSION="0.8.1-beta"
 finalpath="/srv/PufferPanel"
 webuser=""
 test=false
-mysqlonly=true
 webservice="auto"
 installDev=false
 
@@ -203,9 +206,7 @@ if ! php -d ${installpath} tools/composer.phar install; then
     exit 1
 fi
 
-#TODO
-#Should be callable without executing above
-#Likely can rewrite this logic to be more clear
+#TODO: Likely can rewrite this logic to be more clear
 echo "-----"
 echo "Preparing MySQL connection"
 echo -e "${RED}For this step, please use either root or an account with database creation and GRANT${NORMAL}"
