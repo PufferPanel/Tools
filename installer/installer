@@ -68,7 +68,6 @@ installDev=false
 ######################
 
 # Begin execution process
-
 while getopts "hutp:w:" opt; do
     case "$opt" in
     h)
@@ -85,7 +84,6 @@ while getopts "hutp:w:" opt; do
         finalpath=$OPTARG
         ;;
     w)
-        # Validate option pass is either apache/nginx/none/auto
         case $OPTARG in
             apache|nginx|none|auto)
                 webservice=$OPTARG
@@ -106,6 +104,9 @@ shift $((OPTIND-1))
 
 echo "PufferPanel Installer - Version ${VERSION} (${PANELVERSION})"
 echo "------"
+
+#TODO: We should see if this is ran as root, and warn if not
+
 echo "Install path: ${finalpath}"
 echo "Testing only: ${test}"
 if [[ ${webservice} -eq "auto" ]]; then
@@ -118,7 +119,6 @@ echo "Checking dependencies:"
 #TODO: Improve entire dep checking
 canInstall=true
 
-#Check if PHP is installed
 if isInstalled php PHP; then
     phpInstalled=true
 else
@@ -126,17 +126,14 @@ else
     phpInstalled=false
 fi
 
-#Check if Git is installed
 if ! isInstalled git Git; then
     canInstall=false
 fi
 
-#Check if MySQL is installed
 if ! isInstalled mysql MySQL-client; then
     canInstall=false
 fi
 
-#Check if PHP dependencies are installed
 if php -r 'exit (version_compare(PHP_VERSION, "5.5.0") < 0 ? "1" : "0");' >/dev/null 2>&1; then
     echo -e "PHP 5.5.0+: [${GREEN}Installed${NORMAL}]"
 else
@@ -249,9 +246,6 @@ fi
 
 if [[ "${webservice}" -ne "none" ]]; then
     echo "Installing web config"
-    if [[ "${webservice}" -eq "auto" ]]; then
-        #TODO: Add in web service detection logic
-    fi
     case "$webservice" in
         nginx)
             #TODO: Generate/Move config to nginx folder
