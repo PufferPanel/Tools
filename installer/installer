@@ -30,10 +30,20 @@ function isInstalled {
 }
 
 function printHelp {
-    echo "PufferPanel Installer - Version ${VERSION}"
+    echo "PufferPanel Installer - Version ${VERSION} (${PANELVERSION})"
     echo "Optional parameters: "
     echo "-u [user] | Sets the user/group owner of the panel files"
     echo "-t        | Checks if the depedencies are installed without installing panel"
+}
+
+function findWebService() {
+    if nginx -v >/dev/null 2>&1; then
+        return "nginx"
+    elif apache -v >/dev/null 2>&1; then
+        return "apache"
+    else
+        return "none"
+    fi
 }
 
 ######################
@@ -49,7 +59,7 @@ PANELVERSION="0.8.1-beta"
 
 # Variables
 finalpath="/srv/PufferPanel"
-webuser="apache"
+webuser=""
 test=false
 mysqlonly=true
 webservice="auto"
@@ -94,10 +104,14 @@ shift $((OPTIND-1))
 
 [ "$1" = "--" ] && shift
 
-echo "PufferPanel Installer - Version $version"
+echo "PufferPanel Installer - Version ${VERSION} (${PANELVERSION})"
 echo "------"
 echo "Install path: ${finalpath}"
 echo "Testing only: ${test}"
+if [[ ${webservice} -eq "auto" ]]; then
+    ${webservice}=findWebService
+fi
+echo "Web service: ${webservice}"
 echo "------"
 echo "Checking dependencies:"
 
@@ -255,19 +269,30 @@ shopt -s dotglob
 mv ${installpath}/* ${finalpath}
 chmod -R 774 ${finalpath}/src/{core,logs,cache}
 
-#TODO: Validate if this is needed, and if so, if it could be redone a little
+if [ -z "$webuser" ]; then
+    distro=`. /etc/os-release 2>/dev/null; echo $ID`
+    if [[ "${distro}" -eq "ubuntu" ]]; then
+        webuser="www-data";
+    elif [[ "${distro}" -eq "debian" ]]; then
+        webuser="www-data";
+    else
+        webuser=${webservice}
+    fi
+fi
 
-if getent passwd ${webuser} > /dev/null; then
-  echo "Chowning files to ${webuser} user"  
-  if ! chown -R ${webuser}:${webuser} $finalpath; then
-    echo -e "${RED}Could not chown ${finalpath} to ${webuser}, please do this manually${NORMAL}"
-  fi
-else
-  echo -e "${RED}${webuser} user not found, cannot chown to correct user${NORMAL}"
+if [ "$webuser" -ne "none" ]; then
+    if getent passwd ${webuser} > /dev/null; then
+        echo "Chowning files to ${webuser} user"
+        if ! chown -R ${webuser}:${webuser} $finalpath; then
+            echo -e "${RED}Could not chown ${finalpath} to ${webuser}, please do this manually${NORMAL}"
+        fi
+        echo -e "If the above chown is not the correct user or did not work, please manually chown the ${finalpath} folder"
+    else
+        echo -e "${RED}${webuser} user not found, cannot chown to correct user${NORMAL}"
+    fi
 fi
 
 echo -e "${GREEN}PufferPanel has installed successfully.${NORMAL}"
-echo -e "If the above chown is not the correct user or did not work, please manually chown the ${finalpath} folder"
 exit
 
 ##ATTACHED RESOURCES
