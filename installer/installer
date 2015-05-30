@@ -72,7 +72,7 @@ distro=`. /etc/os-release 2>/dev/null; echo $ID`
 ######################
 
 # Begin execution process
-while getopts "hutp:w:" opt; do
+while getopts "hutp:w:D" opt; do
     case "$opt" in
     h)
         printHelp
@@ -189,10 +189,11 @@ else
     payload_start=$((match + 1))
     if ! tail -n +${payload_start} $0 | tar -xzf - ${installpath}; then
         echo "${RED}An error occured while installing, falling back to manual${END}"
-        if ! git clone https://github.com/PufferPanel/PufferPanel.git ${installpath} || ! git --git-dir=${installpath} checkout tags/${PANELVERSION}; then
+        if ! git clone https://github.com/PufferPanel/PufferPanel.git ${installpath} || ! git --git-dir=${installpath}/.git --work-tree=${installpath} checkout tags/${PANELVERSION}; then
             echo "${RED}Failed to clone repo manually${END}"
             exit 1
         fi
+
     fi
 fi
 
