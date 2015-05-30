@@ -183,12 +183,12 @@ else
 fi
 
 if [ -d "${installpath}"]; then
-    echo -n "${RED}Install folder (${finalpath}) already exists, override? (y/n): "
+    echo -n "${RED}Install folder (${finalpath}) already exists, override? (y/n):{END} "
     read validate
     if [[ "${validate}" == "y" ]]; then
         rm -rf ${finalpath}
-    elif
-        exit 0
+    else
+        exit
     fi
 fi
 
