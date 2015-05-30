@@ -18,6 +18,8 @@
 
 ######################
 
+# TODO: Move all this into function calls with parameters
+
 # Function declaration
 function isInstalled {
     if type "$1" 1>/dev/null 2>&1; then
@@ -42,12 +44,17 @@ function printHelp {
 
 function findWebService() {
     if nginx -v >/dev/null 2>&1; then
-        return "nginx"
+        echo "nginx"
     elif apache -v >/dev/null 2>&1; then
-        return "apache"
+        echo "apache"
     else
-        return "none"
+        echo "none"
     fi
+}
+
+function buildLanguage() {
+    local directory=$1
+    bash ${directory}/tools/language-builder.sh -p ${directory}
 }
 
 ######################
@@ -114,8 +121,8 @@ echo "------"
 
 echo "Install path: ${finalpath}"
 echo "Testing only: ${test}"
-if [[ ${webservice} -eq "auto" ]]; then
-    ${webservice}=`findWebService`
+if [[ ${webservice} == "auto" ]]; then
+    webservice=$(findWebService)
 fi
 echo "Web service: ${webservice}"
 echo "------"
@@ -175,15 +182,28 @@ else
     exit 1
 fi
 
+if [ -d "${installpath}"]; then
+    echo -n "${RED}Install folder (${finalpath}) already exists, override? (y/n): "
+    read validate
+    if [[ "${validate}" == "y" ]]; then
+        rm -rf ${finalpath}
+    elif
+        exit 0
+    fi
+fi
+
 installpath=$(mktemp -d)
 
 echo "-----"
 echo "Extracting PufferPanel"
 if ${installDev}; then
-        if ! git clone https://github.com/PufferPanel/PufferPanel.git ${installpath}; then
-            echo "{RED}Failed to clone repo manually${END}"
-            exit 1
-        fi
+    if ! git clone https://github.com/PufferPanel/PufferPanel.git ${installpath}; then
+        echo "{RED}Failed to clone repo manually${END}"
+        exit 1
+    fi
+    #ON RELEASE, REMOVE THIS
+    git --git-dir=${installpath}/.git --work-tree=${installpath} checkout kraken
+    buildLanguage ${installpath}
 else
     match=$(grep --text --line-number '^__PUFFERPANEL.TAR.GZ__$' $0 | cut -d ':' -f 1)
     payload_start=$((match + 1))
@@ -193,7 +213,7 @@ else
             echo "${RED}Failed to clone repo manually${END}"
             exit 1
         fi
-
+        buildLanguage ${installpath}
     fi
 fi
 
@@ -203,7 +223,7 @@ if ! curl -sS https://getcomposer.org/installer | php -- --install-dir=${install
     exit 1
 fi
 
-if ! php -d ${installpath} tools/composer.phar install; then
+if ! php ${installpath}/tools/composer.phar install -d ${installpath}; then
     echo "${RED}An error occured while installing, halting${END}"
     exit 1
 fi
@@ -236,18 +256,19 @@ if [ -n "${inputmysqluser}" ]; then
     mysqluser=${inputmysqluser}
 fi
 
-until mysql --host=${mysqlhost} --port=${mysqlport} -user=${mysqluser} -password=${mysqlpass} -e "exit"; do
+until mysql --host=${mysqlhost} --port=${mysqlport} --user=${mysqluser} --password=${mysqlpass} -e "exit" >/dev/null 2>/dev/null; do
     echo -n "MySQL Password: "
     read -s mysqlpass
+    echo
 done
 
 echo "Executing panel version installer"
-if ! php -f ${installpath}/install/install.php --host=${mysqlhost} --port=${mysqlport} --user={mysqluser} --pass={mysqlpass}; then
+if ! php -f ${installpath}/install/install.php -- host=${mysqlhost} port=${mysqlport} user=${mysqluser} pass=${mysqlpass}; then
     echo "${RED}Executing database install has failed${END}"
     exit 1
 fi
 
-if [[ "${webservice}" -ne "none" ]]; then
+if [[ "${webservice}" != "none" ]]; then
     echo "Installing web config"
     echo -n "Please enter your site's URL (without http://):"
     read siteurl
@@ -258,21 +279,25 @@ if [[ "${webservice}" -ne "none" ]]; then
             if [ -d "/etc/nginx/sites-enabled" ]; then
                 destination="/etc/nginx/sites-available/pufferpanel"
                 ln -s ../sites-available/pufferpanel /etc/nginx/sites-enabled/pufferpanel
-            elif [ -d "/etc/nginx/sites-enabled" ]; then
+            elif [ -d "/etc/nginx/conf.d" ]; then
                 destination="/etc/nginx/conf.d/pufferpanel.conf"
             fi
-            if [[ "${distro}" -eq "debian"]] || [[ "${distro}" -eq "ubuntu"]]; then
-                phpserv=$(grep "^listen[ ]=" /etc/php5/fpm/pool.d/www.conf)
-            else
-                phpserv=$(grep "^listen[ ]=" /etc/php-fpm.d/www.conf)
-            fi
+
+            case "$distro" in
+                debian|ubuntu)
+                    phpserv=$(grep "^listen[ ]=" /etc/php5/fpm/pool.d/www.conf)
+                    ;;
+                *)
+                    phpserv=$(grep "^listen[ ]=" /etc/php-fpm.d/www.conf)
+                    ;;
+            esac
             ;;
         apache)
             #TODO: Generate/Move config to apache folder
             ;;
     esac
     if [ -n "$destination" ]; then
-        eval echo "\"$(<$targetfile)\"" > destination
+        eval echo "\"$(<$targetfile)\"" > ${destination}
     else
         echo "${RED}Could not move web config, please see ${finalpath}/tools/webconfigs/ for example configs${END}"
     fi
@@ -286,16 +311,16 @@ mv ${installpath}/* ${finalpath}
 chmod -R 774 ${finalpath}/src/{core,logs,cache}
 
 if [ -z "$webuser" ]; then    
-    if [[ "${distro}" -eq "ubuntu" ]]; then
+    if [[ "${distro}" == "ubuntu" ]]; then
         webuser="www-data";
-    elif [[ "${distro}" -eq "debian" ]]; then
+    elif [[ "${distro}" == "debian" ]]; then
         webuser="www-data";
     else
         webuser=${webservice}
     fi
 fi
 
-if [ "$webuser" -ne "none" ]; then
+if [[ "${webuser}" != "none" ]]; then
     if getent passwd ${webuser} > /dev/null; then
         echo "Chowning files to ${webuser} user"
         if ! chown -R ${webuser}:${webuser} $finalpath; then
