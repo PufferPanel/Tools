@@ -21,10 +21,10 @@
 # Function declaration
 function isInstalled {
     if type "$1" 1>/dev/null 2>&1; then
-        echo -e "$2: [${GREEN}Installed${NORMAL}]"
+        echo "$2: [${GREEN}Installed${END}]"
         return 0
     else
-        echo -e "$2: [${RED}Not Installed${NORMAL}]"
+        echo "$2: [${RED}Not Installed${END}]"
         return 1
     fi
 }
@@ -53,9 +53,9 @@ function findWebService() {
 ######################
 
 # CONSTANTS
-RED="\e[0;31m"
-GREEN="\e[0;32m"
-NORMAL="\e[0m"
+RED=$'\e[0;31m'
+GREEN=$'\e[0;32m'
+END=$'\e[0m'
 VERSION="0.2.0"
 PANELVERSION="0.8.1-beta"
 
@@ -92,7 +92,7 @@ while getopts "hutp:w:" opt; do
                 webservice=$OPTARG
                 ;;
             *)
-                echo "${RED}Invalid web service passed${NORMAL}"
+                echo "${RED}Invalid web service passed${END}"
                 ;;
         esac
     D)
@@ -138,9 +138,9 @@ if ! isInstalled mysql MySQL-client; then
 fi
 
 if php -r 'exit (version_compare(PHP_VERSION, "5.5.0") < 0 ? "1" : "0");' >/dev/null 2>&1; then
-    echo -e "PHP 5.5.0+: [${GREEN}Installed${NORMAL}]"
+    echo "PHP 5.5.0+: [${GREEN}Installed${END}]"
 else
-    echo -e "PHP 5.5.0+: [${RED}Not Installed${NORMAL}]"
+    echo "PHP 5.5.0+: [${RED}Not Installed${END}]"
     canInstall=false
 fi
 
@@ -150,9 +150,9 @@ for i in ${extensions[@]}; do
 <?php exit (extension_loaded("${i}") ? "1" : "0"); ?>
 EOF`
     if ${phpcmd} >/dev/null 2>&1; then
-        echo -e "PHP-${i}: [${GREEN}Installed${NORMAL}]"
+        echo "PHP-${i}: [${GREEN}Installed${END}]"
     else
-        echo -e "PHP-${i}: [${RED}Not Installed${NORMAL}]"
+        echo "PHP-${i}: [${RED}Not Installed${END}]"
         canInstall=false
     fi
 done
@@ -161,13 +161,13 @@ echo "------"
 
 if ${canInstall}; then
     if ${test}; then
-        echo -e "${GREEN}All dependencies are validated${NORMAL}"
+        echo "${GREEN}All dependencies are validated${END}"
         exit
     else
-        echo -e "${GREEN}All dependencies are installed, processing with installation${NORMAL}"
+        echo "${GREEN}All dependencies are installed, processing with installation${END}"
     fi
 else
-    echo -e "${RED}Please ensure all dependencies are installed${NORMAL}"
+    echo "${RED}Please ensure all dependencies are installed${END}"
     exit 1
 fi
 
@@ -177,19 +177,19 @@ echo "-----"
 echo "Extracting PufferPanel"
 if installDev; then
         if ! git clone https://github.com/PufferPanel/PufferPanel.git ${installpath}; then
-            echo -e "{RED}Failed to clone repo manually${NORMAL}"
+            echo "{RED}Failed to clone repo manually${END}"
             exit 1
         fi
 else
     match=$(grep --text --line-number '^__PUFFERPANEL.TAR.GZ__$' $0 | cut -d ':' -f 1)
     payload_start=$((match + 1))
     if ! tail -n +${payload_start} $0 | tar -xzf - ${installpath}; then
-        echo -e "${RED}An error occured while installing, falling back to manual${NORMAL}"
+        echo "${RED}An error occured while installing, falling back to manual${END}"
         gitcmd= \
            git clone https://github.com/PufferPanel/PufferPanel.git ${installpath} && \
            git --git-dir=${installpath} checkout tags/${PANELVERSION}
         if ! gitcmd; then
-            echo -e "{RED}Failed to clone repo manually${NORMAL}"
+            echo "{RED}Failed to clone repo manually${END}"
             exit 1
         fi
     fi
@@ -197,19 +197,19 @@ fi
 
 echo "Installing Composer"
 if ! curl -sS https://getcomposer.org/installer | php -- --install-dir=${installpath}/tools; then
-    echo -e "${RED}An error occured while installing, halting${NORMAL}"
+    echo "${RED}An error occured while installing, halting${END}"
     exit 1
 fi
 
 if ! php -d ${installpath} tools/composer.phar install; then
-    echo -e "${RED}An error occured while installing, halting${NORMAL}"
+    echo "${RED}An error occured while installing, halting${END}"
     exit 1
 fi
 
 #TODO: Likely can rewrite this logic to be more clear
 echo "-----"
 echo "Preparing MySQL connection"
-echo -e "${RED}For this step, please use either root or an account with database creation and GRANT${NORMAL}"
+echo "${RED}For this step, please use either root or an account with database creation and GRANT${END}"
 
 mysqlhost="localhost"
 mysqluser="root"
@@ -241,12 +241,14 @@ done
 
 echo "Executing panel version installer"
 if ! php -f ${installpath}/install/install.php --host=${mysqlhost} --port=${mysqlport} --user={mysqluser} --pass={mysqlpass}; then
-    echo "${RED}Executing database install has failed${NORMAL}"
+    echo "${RED}Executing database install has failed${END}"
     exit 1
 fi
 
 if [[ "${webservice}" -ne "none" ]]; then
     echo "Installing web config"
+    targetfile="${installpath}/tools/webconfigs/${webservice}.conf"
+    destination=""
     case "$webservice" in
         nginx)
             #TODO: Generate/Move config to nginx folder
@@ -255,6 +257,11 @@ if [[ "${webservice}" -ne "none" ]]; then
             #TODO: Generate/Move config to apache folder
             ;;
     esac
+    if [ -n "$destination" ]; then
+        eval echo "\"$(<$targetfile)\"" > destination
+    else
+        echo
+    fi
 fi
 
 echo "Finishing install"
@@ -279,15 +286,15 @@ if [ "$webuser" -ne "none" ]; then
     if getent passwd ${webuser} > /dev/null; then
         echo "Chowning files to ${webuser} user"
         if ! chown -R ${webuser}:${webuser} $finalpath; then
-            echo -e "${RED}Could not chown ${finalpath} to ${webuser}, please do this manually${NORMAL}"
+            echo "${RED}Could not chown ${finalpath} to ${webuser}, please do this manually${END}"
         fi
-        echo -e "If the above chown is not the correct user or did not work, please manually chown the ${finalpath} folder"
+        echo "If the above chown is not the correct user or did not work, please manually chown the ${finalpath} folder"
     else
-        echo -e "${RED}${webuser} user not found, cannot chown to correct user${NORMAL}"
+        echo "${RED}${webuser} user not found, cannot chown to correct user${END}"
     fi
 fi
 
-echo -e "${GREEN}PufferPanel has installed successfully.${NORMAL}"
+echo "${GREEN}PufferPanel has installed successfully.${END}"
 exit
 
 ##ATTACHED RESOURCES
