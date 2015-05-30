@@ -251,7 +251,12 @@ if [[ "${webservice}" -ne "none" ]]; then
     destination=""
     case "$webservice" in
         nginx)
-            #TODO: Generate/Move config to nginx folder
+            if [ -d "/etc/nginx/sites-enabled" ]; then
+                destination="/etc/nginx/sites-available/pufferpanel"
+                ln -s ../sites-available/pufferpanel /etc/nginx/sites-enabled/pufferpanel
+            elif [ -d "/etc/nginx/sites-enabled" ]; then
+                destination="/etc/nginx/conf.d/pufferpanel.conf"
+            fi
             ;;
         apache)
             #TODO: Generate/Move config to apache folder
@@ -260,7 +265,7 @@ if [[ "${webservice}" -ne "none" ]]; then
     if [ -n "$destination" ]; then
         eval echo "\"$(<$targetfile)\"" > destination
     else
-        echo
+        echo "${RED}Could not move web config, please see ${finalpath}/tools/webconfigs/ for example configs${END}"
     fi
 fi
 
