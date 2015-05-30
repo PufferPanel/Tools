@@ -297,7 +297,13 @@ if [[ "${webservice}" != "none" ]]; then
             ;;
     esac
     if [ -n "$destination" ]; then
-        eval echo "\"$(<$targetfile)\"" > ${destination}
+        sedcmd=''
+        for var in finalpath siteurl phpserv;do
+            printf -v sc 's/${%s}/%s/;' $var "${!var//\//\\/}"
+            sedcmd+="$sc"
+        done
+        sed -e "$sedcmd" < ${targetfile} > ${destination}
+
     else
         echo "${RED}Could not move web config, please see ${finalpath}/tools/webconfigs/ for example configs${END}"
     fi
