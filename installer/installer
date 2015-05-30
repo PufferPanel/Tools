@@ -67,6 +67,7 @@ webuser=""
 test=false
 webservice="auto"
 installDev=false
+distro=`. /etc/os-release 2>/dev/null; echo $ID`
 
 ######################
 
@@ -114,7 +115,7 @@ echo "------"
 echo "Install path: ${finalpath}"
 echo "Testing only: ${test}"
 if [[ ${webservice} -eq "auto" ]]; then
-    ${webservice}=findWebService
+    ${webservice}=`findWebService`
 fi
 echo "Web service: ${webservice}"
 echo "------"
@@ -138,7 +139,8 @@ if ! isInstalled mysql MySQL-client; then
     canInstall=false
 fi
 
-if php -r 'exit (version_compare(PHP_VERSION, "5.5.0") < 0 ? "1" : "0");' >/dev/null 2>&1; then
+result=`php -r 'exit (version_compare(PHP_VERSION, "5.5.0") >= 0 ? "0" : "255");' >/dev/null 2>&1`
+if [[ "${result}" -eq "0" ]]; then
     echo "PHP 5.5.0+: [${GREEN}Installed${END}]"
 else
     echo "PHP 5.5.0+: [${RED}Not Installed${END}]"
@@ -148,9 +150,10 @@ fi
 extensions=("curl" "hash" "openssl" "mcrypt" "pdo" "pdo_mysql")
 for i in ${extensions[@]}; do
     phpcmd=`php <<EOF
-<?php exit (extension_loaded("${i}") ? "1" : "0"); ?>
+<?php exit (extension_loaded("${i}") ? "0" : "255"); ?>
 EOF`
-    if ${phpcmd} >/dev/null 2>&1; then
+    result=${phpcmd} >/dev/null 2>&1
+    if [[ "${result}" -eq "0" ]]; then
         echo "PHP-${i}: [${GREEN}Installed${END}]"
     else
         echo "PHP-${i}: [${RED}Not Installed${END}]"
@@ -176,7 +179,7 @@ installpath=$(mktemp -d)
 
 echo "-----"
 echo "Extracting PufferPanel"
-if installDev; then
+if ${installDev}; then
         if ! git clone https://github.com/PufferPanel/PufferPanel.git ${installpath}; then
             echo "{RED}Failed to clone repo manually${END}"
             exit 1
@@ -186,11 +189,8 @@ else
     payload_start=$((match + 1))
     if ! tail -n +${payload_start} $0 | tar -xzf - ${installpath}; then
         echo "${RED}An error occured while installing, falling back to manual${END}"
-        gitcmd= \
-           git clone https://github.com/PufferPanel/PufferPanel.git ${installpath} && \
-           git --git-dir=${installpath} checkout tags/${PANELVERSION}
-        if ! gitcmd; then
-            echo "{RED}Failed to clone repo manually${END}"
+        if ! git clone https://github.com/PufferPanel/PufferPanel.git ${installpath} || ! git --git-dir=${installpath} checkout tags/${PANELVERSION}; then
+            echo "${RED}Failed to clone repo manually${END}"
             exit 1
         fi
     fi
@@ -284,8 +284,7 @@ shopt -s dotglob
 mv ${installpath}/* ${finalpath}
 chmod -R 774 ${finalpath}/src/{core,logs,cache}
 
-if [ -z "$webuser" ]; then
-    distro=`. /etc/os-release 2>/dev/null; echo $ID`
+if [ -z "$webuser" ]; then    
     if [[ "${distro}" -eq "ubuntu" ]]; then
         webuser="www-data";
     elif [[ "${distro}" -eq "debian" ]]; then
