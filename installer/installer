@@ -95,6 +95,7 @@ while getopts "hutp:w:" opt; do
                 echo "${RED}Invalid web service passed${END}"
                 ;;
         esac
+        ;;
     D)
        installDev=true
        ;;
