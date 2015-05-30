@@ -183,7 +183,7 @@ else
 fi
 
 if [ -d "${installpath}"]; then
-    echo -n "${RED}Install folder (${finalpath}) already exists, override? (y/n):{END} "
+    echo -n "${RED}Install folder (${finalpath}) already exists, override? (y/n):${END} "
     read validate
     if [[ "${validate}" == "y" ]]; then
         rm -rf ${finalpath}
@@ -285,10 +285,10 @@ if [[ "${webservice}" != "none" ]]; then
 
             case "$distro" in
                 debian|ubuntu)
-                    phpserv=$(grep "^listen[ ]=" /etc/php5/fpm/pool.d/www.conf)
+                    phpserv=$(grep "^listen[ ]=" /etc/php5/fpm/pool.d/www.conf | sed -e 's/listen\s*=\s*//g')
                     ;;
                 *)
-                    phpserv=$(grep "^listen[ ]=" /etc/php-fpm.d/www.conf)
+                    phpserv=$(grep "^listen[ ]=" /etc/php-fpm.d/www.conf | sed -e 's/listen\s*=\s*//g')
                     ;;
             esac
             ;;
