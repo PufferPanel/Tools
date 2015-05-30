@@ -247,6 +247,8 @@ fi
 
 if [[ "${webservice}" -ne "none" ]]; then
     echo "Installing web config"
+    echo -n "Please enter your site's URL (without http://):"
+    read siteurl
     targetfile="${installpath}/tools/webconfigs/${webservice}.conf"
     destination=""
     case "$webservice" in
@@ -256,6 +258,11 @@ if [[ "${webservice}" -ne "none" ]]; then
                 ln -s ../sites-available/pufferpanel /etc/nginx/sites-enabled/pufferpanel
             elif [ -d "/etc/nginx/sites-enabled" ]; then
                 destination="/etc/nginx/conf.d/pufferpanel.conf"
+            fi
+            if [[ "${distro}" -eq "debian"]] || [[ "${distro}" -eq "ubuntu"]]; then
+                phpserv=$(grep "^listen[ ]=" /etc/php5/fpm/pool.d/www.conf)
+            else
+                phpserv=$(grep "^listen[ ]=" /etc/php-fpm.d/www.conf)
             fi
             ;;
         apache)
