@@ -148,8 +148,6 @@ function installPanelFiles {
             echo "{RED}Failed to clone repo manually${END}"
             return 1
         fi
-        #ON RELEASE, REMOVE THIS
-        git --git-dir=${installPath}/.git --work-tree=${installPath} checkout kraken
         buildLanguage ${installPath}
     else
         match=$(grep --text --line-number '^__PUFFERPANEL.TAR.GZ__$' $0 | cut -d ':' -f 1)
