@@ -190,7 +190,7 @@ function installWebConfig {
         echo "Installing web config"
         echo -n "Please enter your site's URL (without http://):"
         read siteurl
-        local targetfile="${installPath}/tools/webconfigs/${webservice}.conf"
+        local targetfile="${installPath}/install/webconfigs/${webservice}.conf"
         local destination=""
         case "$webservice" in
             nginx)
@@ -223,7 +223,7 @@ function installWebConfig {
             sed -e "$sedcmd" < ${targetfile} > ${destination}
 
         else
-            echo "${RED}Could not move web config, please see ${finalpath}/tools/webconfigs/ for example configs${END}"
+            echo "${RED}Could not move web config, please see ${finalpath}/install/webconfigs/ for example configs${END}"
             return 1
         fi
     fi
