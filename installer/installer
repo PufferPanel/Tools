@@ -1,122 +1,42 @@
 #!/bin/bash
-#
-# PufferPanel - A Minecraft Server Management Panel
-# Copyright (c) 2014 PufferPanel
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+version=0.1
+red="\e[0;31m"
+green="\e[0;32m"
+normal="\e[0m"
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+usedev=false
+installpath=$(mktemp -d)
+finalpath="/var/www/pufferpanel"
+webuser="apache"
+test=false
+skiplang=false
 
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see http://www.gnu.org/licenses/.
+mysqlhost="localhost"
+mysqluser="root"
+companyname="ExampleHost"
+siteurl="panel.examplehost.com"
+adminname="admin"
+adminemail="admin@examplehost.com"
+
+#Check distro and set proper webuser
+distro=`. /etc/os-release 2>/dev/null; echo $ID`
+if [[ "${distro}" -eq "ubuntu" ]]; then
+    webuser="www-data";
+elif [[ "${distro}" -eq "debian" ]]; then
+    webuser="www-data";
+fi
 
 
-######################
-# CONSTANTS
-######################
-
-RED=$'\e[0;31m'
-GREEN=$'\e[0;32m'
-END=$'\e[0m'
-VERSION="0.2.0"
-PANELVERSION="0.8.1-beta"
-
-######################
-# Function declaration
-######################
-
-# Parameters: Command, DisplayName
-function isInstalled {
+#This is a helper function to allow for less repetition of command checks
+function checkInstall {
     if type "$1" 1>/dev/null 2>&1; then
-        echo "$2: [${GREEN}Installed${END}]"
-        return 0
+        echo -e "$2: [${green}Installed${normal}]";
     else
-        echo "$2: [${RED}Not Installed${END}]"
-        return 1
-    fi
-}
-
-# Parameters: None
-function printHelp {
-    echo "PufferPanel Installer - Version ${VERSION} (${PANELVERSION})"
-    echo "Optional parameters: "
-    echo "-h           | Prints this help page"
-    echo "-u [user]    | Sets the user/group owner of the panel files"
-    echo "-t           | Checks if the depedencies are installed without installing panel"
-    echo "-p [path]    | Sets the install path for the panel (default /srv/PufferPanel)"
-    echo "-w [service] | Specifies the web service to use, accepts nginx/apache/none/auto (default auto)"
-    echo "-D           | Downloads and installs the latest dev build"
-}
-
-#Parameters: None
-function findWebService {
-    if nginx -v >/dev/null 2>&1; then
-        echo "nginx"
-    elif apache -v >/dev/null 2>&1; then
-        echo "apache"
-    else
-        echo "none"
-    fi
-}
-
-# Parameters: Path
-function buildLanguage {
-    local directory=$1
-    bash ${directory}/tools/language-builder.sh -p ${directory}
-}
-
-# Parameters: Webuser, Path
-function fixPermissions {
-    local webuser=$1
-    local path="$2"
-    chmod -R 774 ${path}/src/{core,logs,cache}
-    if [[ "${webuser}" != "none" ]]; then
-        if getent passwd ${webuser} > /dev/null; then
-            echo "Chowning files to ${webuser} user"
-            if ! chown -R ${webuser}:${webuser} $path; then
-                echo "${RED}Could not chown ${path} to ${webuser}, please do this manually${END}"
-            fi
-            echo "If the above chown is not the correct user or did not work, please manually chown the ${path} folder"
-        else
-            echo "${RED}${webuser} user not found, cannot chown to correct user${END}"
-        fi
-    fi
-}
-
-# Parameters: None
-function checkDependencies {
-    local canInstall=true
-    local phpInstalled=false
-    local extensions=("curl" "hash" "openssl" "mcrypt" "pdo" "pdo_mysql")
-    local result=""
-
-    echo "Checking dependencies:"
-    if ! isInstalled php PHP; then
-        phpInstalled=false
+        echo -e "$2: [${red}Not Installed${normal}]";
         canInstall=false
     fi
-
-    if ! isInstalled git Git; then
-        canInstall=false
-    fi
-
-    if ! isInstalled mysql MySQL-client; then
-        canInstall=false
-    fi
-
-    result=`php -r 'exit (version_compare(PHP_VERSION, "5.5.0") >= 0 ? "0" : "255");' >/dev/null 2>&1`
-    if [[ "${result}" -eq "0" ]]; then
-        echo "PHP 5.5.0+: [${GREEN}Installed${END}]"
-    else
-        echo "PHP 5.5.0+: [${RED}Not Installed${END}]"
-        canInstall=false
-    fi
+<<<<<<< HEAD
 
     for i in ${extensions[@]}; do
         php -r 'exit (extension_loaded($argv[1]) ? 0 : 255);' -- ${i} >/dev/null 2>&1
@@ -178,157 +98,44 @@ function installComposer {
         return 1
     fi
     return 0
+=======
+>>>>>>> parent of 765e375... Merge branch 'kraken'
 }
 
-# Parameters WebService Path
-function installWebConfig {
-    local webservice=$1
-    local installPath="$2"
-    if [[ "${webservice}" != "none" ]]; then
-        echo "Installing web config"
-        echo -n "Please enter your site's URL (without http://):"
-        read siteurl
-        local targetfile="${installPath}/install/webconfigs/${webservice}.conf"
-        local destination=""
-        case "$webservice" in
-            nginx)
-                if [ -d "/etc/nginx/sites-enabled" ]; then
-                    destination="/etc/nginx/sites-available/pufferpanel"
-                    ln -s ../sites-available/pufferpanel /etc/nginx/sites-enabled/pufferpanel
-                elif [ -d "/etc/nginx/conf.d" ]; then
-                    destination="/etc/nginx/conf.d/pufferpanel.conf"
-                fi
-
-                case "$distro" in
-                    debian|ubuntu)
-                        phpserv=$(grep "^listen[ ]=" /etc/php5/fpm/pool.d/www.conf | sed -e 's/listen\s*=\s*//g')
-                        ;;
-                    *)
-                        phpserv=$(grep "^listen[ ]=" /etc/php-fpm.d/www.conf | sed -e 's/listen\s*=\s*//g')
-                        ;;
-                esac
-                ;;
-            apache)
-                #TODO: Generate/Move config to apache folder
-                ;;
-        esac
-        if [ -n "$destination" ]; then
-            local sedcmd=''
-            for var in finalpath siteurl phpserv;do
-                printf -v sc 's/${%s}/%s/;' $var "${!var//\//\\/}"
-                sedcmd+="$sc"
-            done
-            sed -e "$sedcmd" < ${targetfile} > ${destination}
-
-        else
-            echo "${RED}Could not move web config, please see ${finalpath}/install/webconfigs/ for example configs${END}"
-            return 1
-        fi
+function validateCommand {
+    if [ $? -ne 0 ]; then
+        echo -e "${red}An error occured while installing, halting${normal}";
+        exit
     fi
-    return 0
 }
 
-# Parameters: Source, Destination
-function copyFiles {
-    local sourcePath="$1"
-    local destPath="$2"
-    echo "Moving ${sourcePath} to ${destPath}"
-
-    mkdir -p ${destPath}
-    shopt -s dotglob
-    mv ${sourcePath}/* ${destPath}
+function revertInstall {
+    cd $DIR
+    rm -rf ${installpath}
 }
 
-# Parameters Path
-function installSql {
-    local installpath="$1"
-
-    echo "Preparing MySQL connection"
-    echo "${GREEN}For this step, please use either root or an account with database creation and GRANT${END}"
-
-    local mysqlhost="localhost"
-    local mysqluser="root"
-    local mysqlport="3306"
-    local mysqlpass="root"
-
-    echo -n "MySQL Host [${mysqlhost}]: "
-    read inputmysqlhost
-    if [ -n "${inputmysqlhost}" ]; then
-        mysqlhost=${inputmysqlhost}
-    fi
-
-    echo -n "MySQL Port [${mysqlport}]: "
-    read inputmysqlport
-    if [ -n "${inputmysqlport}" ]; then
-        mysqlhost=${inputmysqlport}
-    fi
-
-    echo -n "MySQL Username [${mysqluser}]: "
-    read inputmysqluser
-    if [ -n "${inputmysqluser}" ]; then
-        mysqluser=${inputmysqluser}
-    fi
-
-    until mysql --host=${mysqlhost} --port=${mysqlport} --user=${mysqluser} --password=${mysqlpass} -e "exit" >/dev/null 2>/dev/null; do
-        echo -n "MySQL Password: "
-        read -s mysqlpass
-        echo
-    done
-
-    echo "Executing panel version installer"
-    if ! php -f ${installpath}/install/install.php -- host=${mysqlhost} port=${mysqlport} user=${mysqluser} pass=${mysqlpass}; then
-        echo "${RED}Executing database install has failed${END}"
-        return 1
-    fi
-
-    return 0
-}
-
-
-
-######################
-# Variables
-######################
-
-finalpath="/srv/PufferPanel"
-webuser=""
-testInstall=false
-webservice="auto"
-installDev=false
-distro=`. /etc/os-release 2>/dev/null; echo $ID`
-
-######################
-# Main
-######################
-
-while getopts "hutp:w:D" opt; do
+while getopts "h?dtu:l" opt; do
     case "$opt" in
     h)
-        printHelp
-        exit
+        echo "PufferPanel Installer - Version $version"
+        echo "Optional parameters: "
+        echo "-d        | If set, will install the latest dev version of the panel"
+        echo "-u [user] | Sets the user/group owner of the panel files"
+        echo "-t        | Checks if the depedencies are installed without installing panel"
+        echo "-l        | Skips language building"
+        exit;
+        ;;
+    d)
+        usedev=true
         ;;
     u)
         webuser=$OPTARG
         ;;
     t)
-        testInstall=true
+        test=true
         ;;
-    p)
-        finalpath=$OPTARG
-        ;;
-    w)
-        case $OPTARG in
-            apache|nginx|none|auto)
-                webservice=$OPTARG
-                ;;
-            *)
-                echo "${RED}Invalid web service passed${END}"
-                ;;
-        esac
-        ;;
-    D)
-       installDev=true
-       ;;
+    l)
+        skiplang=true
     esac
 done
 
@@ -336,75 +143,212 @@ shift $((OPTIND-1))
 
 [ "$1" = "--" ] && shift
 
-echo "PufferPanel Installer - Version ${VERSION} (${PANELVERSION})"
+echo -n "PufferPanel Install Location [${finalpath}]: "
+read inputFinalPath
 
+if [ -n "${inputFinalPath}" ]; then
+    finalpath=${inputFinalPath}
+fi
+
+echo "PufferPanel Installer - Version $version"
 echo "------"
 echo "Install path: ${finalpath}"
-echo "Testing only: ${testInstall}"
-if [[ ${webservice} == "auto" ]]; then
-    webservice=$(findWebService)
-fi
-echo "Web service: ${webservice}"
-
+echo "Temp path: ${installpath}"
+echo "Using dev: ${usedev}"
+echo "Testing only: ${test}"
+echo "Skipping languages: ${skiplang}"
 echo "------"
-if [ -d "${finalpath}" ]; then
-    echo -n "${RED}Install folder (${finalpath}) already exists, override? (y/n):${END} "
-    read validate
-    if [[ "${validate}" == "y" ]]; then
-        rm -rf ${finalpath}
-        echo "-----"
+echo "Checking dependencies:"
+
+canInstall=true
+
+#Check if PHP is installed
+checkInstall php PHP
+
+if $canInstall; then
+    phpInstalled=true
+else
+    phpInstalled=false
+fi
+
+#Check if Git is installed
+checkInstall git Git
+
+#Check if MySQL is installed
+checkInstall mysql MySQL-client
+
+#Check if PHP dependencies are installed
+if $phpInstalled; then
+    result=$(php -r 'exit (version_compare(PHP_VERSION, "5.5.0") < 0 ? "1" : "0");');
+    if [ "$result" -eq "0" ]; then
+        echo -e "PHP 5.5.0+: [${green}Installed${normal}]";
     else
-        exit 0
+        echo -e "PHP 5.5.0+: [${red}Not Installed${normal}]";
+        canInstall=false
     fi
-fi
 
-if ! checkDependencies; then
-    exit 1;
-fi
-
-if ${testInstall}; then
-    exit 0;
+    extensions=("curl" "hash" "openssl" "mcrypt" "pdo" "pdo_mysql")
+    for i in ${extensions[@]}; do
+        phpcmd=`php <<EOF
+<?php exit (extension_loaded("${i}") ? "1" : "0"); ?>
+EOF`
+        result=$phpcmd;
+        if [ "$result" -ne "0" ]; then
+            echo -e "PHP-${i}: [${green}Installed${normal}]";
+        else
+            echo -e "PHP-${i}: [${red}Not Installed${normal}]";
+            canInstall=false
+        fi
+    done
+else
+    echo "Since PHP-cli is not installed, assuming no extensions are installed"
+    canInstall=false
 fi
 
 echo "------"
-installPath=$(mktemp -d)
-if ! installPanelFiles ${installDev} ${installPath}; then
-    exit 1;
+
+if ${canInstall}; then
+    if ${test}; then
+        echo -e "${green}All dependencies are validated${normal}"
+        exit;
+    else
+        echo -e "${green}All dependencies are installed, processing with installation${normal}";
+    fi
+else
+    echo -e "${red}Please ensure all dependencies are installed${normal}";
+    exit;
 fi
 
 echo "-----"
-if ! installComposer ${installPath}; then
-    exit 1;
+echo "Preparing MySQL connection"
+echo -e "${red}For this step, please use either root or an account with database creation and GRANT${normal}"
+
+echo -n "MySQL Host [${mysqlhost}]: "
+read inputmysqlhost
+if [ -n "${inputmysqlhost}" ]; then
+    mysqlhost=${inputmysqlhost}
+fi
+
+echo -n "MySQL Username [${mysqluser}]: "
+read inputmysqluser
+if [ -n "${inputmysqluser}" ]; then
+    mysqluser=${inputmysqluser}
+fi
+
+notValid=true
+while ${notValid}; do
+    echo -n "MySQL Password: "
+    read -s mysqlpass
+    if mysql -h ${mysqlhost} -u ${mysqluser} -p${mysqlpass} -e "exit"; then
+        notValid=false
+    else
+        echo "${red}Database connection could not be established${normal}"
+    fi
+done;
+
+echo ""
+echo "-----"
+echo "Preparing Site configuration"
+echo -n "Enter company name [${companyname}]: "
+read inputcompanyname
+if [ -n "${inputcompanyname}" ]; then
+    companyname=${inputcompanyname}
+fi
+
+echo -n "Enter Site Domain Name (do not include http://) [${siteurl}]: "
+read inputsiteurl
+if [ -n "${inputsiteurl}" ]; then
+    siteurl=${inputsiteurl}
 fi
 
 echo "-----"
-if ! installSql ${installPath}; then
-    exit 1;
+echo "Preparing admin account"
+echo -n "Username [${adminname}]: "
+read inputadminname
+if [ -n "${inputadminname}" ]; then
+    adminname=${inputadminname}
+fi
+
+echo -n "Email [${adminemail}]: "
+read inputadminemail
+if [ -n "${inputadminemail}" ]; then
+    adminemail=${inputadminemail}
+fi
+
+echo -n "Password: "
+read -s adminpass
+echo ""
+
+echo "-----"
+echo -e "${green}Configuration options complete, beginning installation process${normal}"
+
+echo "-----"
+echo "Cloning PufferPanel to ${installpath}"
+
+git clone https://github.com/PufferPanel/PufferPanel.git ${installpath}
+validateCommand
+
+echo "-----"
+cd $installpath
+ppversion=$(git describe --abbrev=0 --tags)
+if ${usedev}; then
+    ppversion="master"
+    echo "Using dev version"
+else
+    echo "Checking out ${ppversion}"
+    git checkout tags/${ppversion}
+    validateCommand
+fi
+
+echo "-----"
+echo "Installing Composer"
+curl -sS https://getcomposer.org/installer | php
+validateCommand
+php composer.phar install
+validateCommand
+
+cd $DIR
+
+echo "-----"
+echo "Executing panel version installer"
+
+installFile=$(mktemp -t XXXXX.php);
+curl -sS -o $installFile https://raw.githubusercontent.com/PufferPanel/Tools/master/installer/versions/${ppversion}.php
+
+php -f $installFile mysqlHost="$mysqlhost" mysqlUser="$mysqluser" mysqlPass="$mysqlpass" companyName="$companyname" siteUrl="$siteurl" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass" installDir="$installpath"
+if [ $? -ne 0 ]; then
+    echo -e "${red}An error occured while installing, halting${normal}";
+    revertInstall
+    exit
+fi
+
+echo "-----"
+if $skiplang; then
+    echo "Skipping language building"
+else
+    echo "Building language files"
+    curl -sS https://raw.githubusercontent.com/PufferPanel/Tools/master/language/language-builder | bash -s -- -p $installpath
 fi
 
 echo "-----"
 echo "Finishing install"
+mkdir -p ${finalpath}
 
-if [ -z "$webuser" ]; then    
-    if [[ "${distro}" == "ubuntu" ]]; then
-        webuser="www-data";
-    elif [[ "${distro}" == "debian" ]]; then
-        webuser="www-data";
-    else
-        webuser=${webservice}
-    fi
+shopt -s dotglob
+mv ${installpath}/* ${finalpath}
+chmod -R 777 ${finalpath}/src/logs
+
+getent passwd ${webuser} > /dev/null
+if [ $? -eq 0 ]; then
+  echo "Chowning files to ${webuser} user"
+  chown -R ${webuser}:${webuser} $finalpath
+  if [ $? -ne 0 ]; then
+    echo -e "${red}Could not chown ${finalpath} to ${webuser}, please do this manually${normal}"
+  fi
+else
+  echo -e "${red}${webuser} user not found, cannot chown to correct user${normal}"
 fi
 
-copyFiles ${installPath} ${finalpath}
-
-echo "-----"
-installWebConfig ${webservice} ${finalpath}
-
-echo "-----"
-fixPermissions ${webuser} ${finalpath}
-
-echo "${GREEN}PufferPanel has installed successfully.${END}"
+echo -e "${green}PufferPanel has installed successfully."
+echo -e "If the above chown is not the correct user or did not work, please manually chown the ${finalpath} folder${normal}"
 exit
-
-##ATTACHED RESOURCES
-__PUFFERPANEL.TAR.GZ__
