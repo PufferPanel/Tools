@@ -7,17 +7,21 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 usedev=false
 installpath=$(mktemp -d)
-finalpath="/var/www/pufferpanel"
+finalpath="/srv/PufferPanel"
 webuser="apache"
 test=false
 skiplang=false
 
 mysqlhost="localhost"
+mysqlPort="3306"
 mysqluser="root"
 companyname="ExampleHost"
 siteurl="panel.examplehost.com"
 adminname="admin"
 adminemail="admin@examplehost.com"
+
+#Redirect logs to a file as well as stdout
+exec &> >(tee "/tmp/ppinstaller.log")
 
 #Check distro and set proper webuser
 distro=`. /etc/os-release 2>/dev/null; echo $ID`
@@ -50,18 +54,18 @@ function revertInstall {
     rm -rf ${installpath}
 }
 
-while getopts "h?dtu:l" opt; do
+while getopts "h?Dtu:l" opt; do
     case "$opt" in
     h)
         echo "PufferPanel Installer - Version $version"
         echo "Optional parameters: "
-        echo "-d        | If set, will install the latest dev version of the panel"
+        echo "-D        | If set, will install the latest dev version of the panel"
         echo "-u [user] | Sets the user/group owner of the panel files"
         echo "-t        | Checks if the depedencies are installed without installing panel"
         echo "-l        | Skips language building"
         exit;
         ;;
-    d)
+    D)
         usedev=true
         ;;
     u)
@@ -165,6 +169,12 @@ if [ -n "${inputmysqlhost}" ]; then
     mysqlhost=${inputmysqlhost}
 fi
 
+echo -n "MySQL Port [${mysqlPort}]: "
+read inputmysqlport
+if [ -n "${inputmysqlport}" ]; then
+    mysqlPort=${inputmysqlport}
+fi
+
 echo -n "MySQL Username [${mysqluser}]: "
 read inputmysqluser
 if [ -n "${inputmysqluser}" ]; then
@@ -191,7 +201,7 @@ if [ -n "${inputcompanyname}" ]; then
     companyname=${inputcompanyname}
 fi
 
-echo -n "Enter Site Domain Name (do not include http://) [${siteurl}]: "
+echo -n "Enter Site Domain Name (do not include http(s)://) [${siteurl}]: "
 read inputsiteurl
 if [ -n "${inputsiteurl}" ]; then
     siteurl=${inputsiteurl}
@@ -228,7 +238,6 @@ echo "-----"
 cd $installpath
 ppversion=$(git describe --abbrev=0 --tags)
 if ${usedev}; then
-    ppversion="master"
     echo "Using dev version"
 else
     echo "Checking out ${ppversion}"
@@ -238,7 +247,7 @@ fi
 
 echo "-----"
 echo "Installing Composer"
-curl -sS https://getcomposer.org/installer | php
+curl -o ${installpath}/composer.phar https://getcomposer.org/download/1.0.0-alpha10/composer.phar
 validateCommand
 php composer.phar install
 validateCommand
@@ -248,22 +257,21 @@ cd $DIR
 echo "-----"
 echo "Executing panel version installer"
 
-installFile=$(mktemp -t XXXXX.php);
-curl -sS -o $installFile https://raw.githubusercontent.com/PufferPanel/Tools/master/installer/versions/${ppversion}.php
-
-php -f $installFile mysqlHost="$mysqlhost" mysqlUser="$mysqluser" mysqlPass="$mysqlpass" companyName="$companyname" siteUrl="$siteurl" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass" installDir="$installpath"
+php -f ${installpath}/install/install.php host="$mysqlhost" port="3306" user="$mysqluser" pass="$mysqlpass"
 if [ $? -ne 0 ]; then
     echo -e "${red}An error occured while installing, halting${normal}";
     revertInstall
     exit
 fi
 
+php -f ${installpath}/install/configure.php companyName="$companyname" siteUrl="$siteurl" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass" installDir="$installpath"
+
 echo "-----"
 if $skiplang; then
     echo "Skipping language building"
 else
     echo "Building language files"
-    curl -sS https://raw.githubusercontent.com/PufferPanel/Tools/master/language/language-builder | bash -s -- -p $installpath
+    bash ${installpath}/tools/language-builder.sh -p ${installpath}
 fi
 
 echo "-----"
@@ -274,7 +282,7 @@ shopt -s dotglob
 mv ${installpath}/* ${finalpath}
 chmod -R 777 ${finalpath}/src/logs
 
-getent passwd ${webuser} > /dev/null
+getent passwd ${webuser} >/dev/null 2>&1
 if [ $? -eq 0 ]; then
   echo "Chowning files to ${webuser} user"
   chown -R ${webuser}:${webuser} $finalpath
