@@ -257,14 +257,12 @@ cd $DIR
 echo "-----"
 echo "Executing panel version installer"
 
-php -f ${installpath}/install/install.php host="$mysqlhost" port="3306" user="$mysqluser" pass="$mysqlpass"
+php -f ${installpath}/install/install.php host="$mysqlhost" port="3306" user="$mysqluser" pass="$mysqlpass" companyName="$companyname" siteUrl="$siteurl" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass" installDir="$installpath"
 if [ $? -ne 0 ]; then
     echo -e "${red}An error occured while installing, halting${normal}";
     revertInstall
     exit
 fi
-
-php -f ${installpath}/install/configure.php companyName="$companyname" siteUrl="$siteurl" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass" installDir="$installpath"
 
 echo "-----"
 if $skiplang; then
