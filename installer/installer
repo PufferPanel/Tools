@@ -25,9 +25,9 @@ exec &> >(tee "/tmp/ppinstaller.log")
 
 #Check distro and set proper webuser
 distro=`. /etc/os-release 2>/dev/null; echo $ID`
-if [[ "${distro}" -eq "ubuntu" ]]; then
+if [ "${distro}" = "ubuntu" ]; then
     webuser="www-data";
-elif [[ "${distro}" -eq "debian" ]]; then
+elif [ "${distro}" = "debian" ]; then
     webuser="www-data";
 fi
 
