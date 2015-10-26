@@ -1,8 +1,12 @@
 #!/bin/bash
 version=0.1
-red="\e[0;31m"
-green="\e[0;32m"
-normal="\e[0m"
+echo "PufferPanel Installer - Version $version"
+echo "------"
+
+red=$(tput setf 4)
+green=$(tput setf 2)
+normal=$(tput sgr0)
+bold=$(tput bold)
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 usedev=false
@@ -31,20 +35,19 @@ elif [ "${distro}" = "debian" ]; then
     webuser="www-data";
 fi
 
-
 #This is a helper function to allow for less repetition of command checks
 function checkInstall {
     if type "$1" 1>/dev/null 2>&1; then
-        echo -e "$2: [${green}Installed${normal}]";
+        echo "$2: [${green}Installed${normal}]";
     else
-        echo -e "$2: [${red}Not Installed${normal}]";
+        echo "$2: [${red}Not Installed${normal}]";
         canInstall=false
     fi
 }
 
 function validateCommand {
     if [ $? -ne 0 ]; then
-        echo -e "${red}An error occured while installing, halting${normal}";
+        echo "${red}An error occured while installing, halting${normal}";
         exit
     fi
 }
@@ -121,9 +124,9 @@ checkInstall mysql MySQL-client
 if $phpInstalled; then
     result=$(php -r 'exit (version_compare(PHP_VERSION, "5.5.0") < 0 ? "1" : "0");');
     if [ "$result" -eq "0" ]; then
-        echo -e "PHP 5.5.0+: [${green}Installed${normal}]";
+        echo "PHP 5.5.0+: [${green}Installed${normal}]";
     else
-        echo -e "PHP 5.5.0+: [${red}Not Installed${normal}]";
+        echo "PHP 5.5.0+: [${red}Not Installed${normal}]";
         canInstall=false
     fi
 
@@ -134,9 +137,9 @@ if $phpInstalled; then
 EOF`
         result=$phpcmd;
         if [ "$result" -ne "0" ]; then
-            echo -e "PHP-${i}: [${green}Installed${normal}]";
+            echo "PHP-${i}: [${green}Installed${normal}]";
         else
-            echo -e "PHP-${i}: [${red}Not Installed${normal}]";
+            echo "PHP-${i}: [${red}Not Installed${normal}]";
             canInstall=false
         fi
     done
@@ -149,19 +152,19 @@ echo "------"
 
 if ${canInstall}; then
     if ${test}; then
-        echo -e "${green}All dependencies are validated${normal}"
+        echo "${green}All dependencies are validated${normal}"
         exit;
     else
-        echo -e "${green}All dependencies are installed, processing with installation${normal}";
+        echo "${green}All dependencies are installed, processing with installation${normal}";
     fi
 else
-    echo -e "${red}Please ensure all dependencies are installed${normal}";
+    echo "${red}Please ensure all dependencies are installed${normal}";
     exit;
 fi
 
 echo "-----"
 echo "Preparing MySQL connection"
-echo -e "${red}For this step, please use either root or an account with database creation and GRANT${normal}"
+echo "${red}For this step, please use either root or an account with database creation and GRANT${normal}"
 
 echo -n "MySQL Host [${mysqlhost}]: "
 read inputmysqlhost
@@ -201,11 +204,12 @@ if [ -n "${inputcompanyname}" ]; then
     companyname=${inputcompanyname}
 fi
 
-echo -n "Enter Site Domain Name (do not include http(s)://) [${siteurl}]: "
+echo -n "Enter Site Domain Name (${bold}do NOT include http(s)://${normal}) [${siteurl}]: "
 read inputsiteurl
 if [ -n "${inputsiteurl}" ]; then
     siteurl=${inputsiteurl}
 fi
+siteurl=${siteurl#*://}
 
 echo "-----"
 echo "Preparing admin account"
@@ -226,7 +230,7 @@ read -s adminpass
 echo ""
 
 echo "-----"
-echo -e "${green}Configuration options complete, beginning installation process${normal}"
+echo "${green}Configuration options complete, beginning installation process${normal}"
 
 echo "-----"
 echo "Cloning PufferPanel to ${installpath}"
@@ -259,7 +263,7 @@ echo "Executing panel version installer"
 
 php -f ${installpath}/install/install.php host="$mysqlhost" port="3306" user="$mysqluser" pass="$mysqlpass" companyName="$companyname" siteUrl="$siteurl" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass" installDir="$installpath"
 if [ $? -ne 0 ]; then
-    echo -e "${red}An error occured while installing, halting${normal}";
+    echo "${red}An error occured while installing, halting${normal}";
     revertInstall
     exit
 fi
@@ -285,12 +289,13 @@ if [ $? -eq 0 ]; then
   echo "Chowning files to ${webuser} user"
   chown -R ${webuser}:${webuser} $finalpath
   if [ $? -ne 0 ]; then
-    echo -e "${red}Could not chown ${finalpath} to ${webuser}, please do this manually${normal}"
+    echo "${red}Could not chown ${finalpath} to ${webuser}, please do this manually${normal}"
   fi
 else
-  echo -e "${red}${webuser} user not found, cannot chown to correct user${normal}"
+  echo "${red}${webuser} user not found, cannot chown to correct user${normal}"
 fi
 
-echo -e "${green}PufferPanel has installed successfully."
-echo -e "If the above chown is not the correct user or did not work, please manually chown the ${finalpath} folder${normal}"
+echo "${green}PufferPanel has installed successfully."
+echo "If the above chown is not the correct user or did not work, please manually chown the ${finalpath} folder${normal}"
+echo "{$normal}"
 exit
