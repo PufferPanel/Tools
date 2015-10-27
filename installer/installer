@@ -5,6 +5,7 @@ echo "------"
 
 red=$(tput setf 4)
 green=$(tput setf 2)
+yellow=$(tput setf 6)
 normal=$(tput sgr0)
 bold=$(tput bold)
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
@@ -24,49 +25,58 @@ siteurl="panel.examplehost.com"
 adminname="admin"
 adminemail="admin@examplehost.com"
 
-#Redirect logs to a file as well as stdout
-exec &> >(tee "/tmp/ppinstaller.log")
-
 #Check distro and set proper webuser
 distro=`. /etc/os-release 2>/dev/null; echo $ID`
 if [ "${distro}" = "ubuntu" ]; then
-    webuser="www-data";
+    webuser="www-data"
 elif [ "${distro}" = "debian" ]; then
-    webuser="www-data";
+    webuser="www-data"
 fi
 
+function print() {
+    echo "$1${normal}"
+}
+
 #This is a helper function to allow for less repetition of command checks
-function checkInstall {
+function checkInstall() {
     if type "$1" 1>/dev/null 2>&1; then
-        echo "$2: [${green}Installed${normal}]";
+        print "$2: [${green}Installed${normal}]"
     else
-        echo "$2: [${red}Not Installed${normal}]";
+        print "$2: [${red}Not Installed${normal}]"
         canInstall=false
     fi
 }
 
-function validateCommand {
+function validateCommand() {
     if [ $? -ne 0 ]; then
-        echo "${red}An error occured while installing, halting${normal}";
-        exit
+        print "${red}An error occured while installing, halting"
+        exit 1
     fi
 }
 
-function revertInstall {
+function revertInstall() {
     cd $DIR
     rm -rf ${installpath}
 }
 
+#Redirect logs to a file as well as stdout
+exec &> >(tee "/tmp/ppinstaller.log")
+
+if [ $? -ne 0 ]; then
+    print "${red}This was not executed using bash, please use bash for proper support"
+    exit 1
+fi
+
 while getopts "h?Dtu:l" opt; do
     case "$opt" in
     h)
-        echo "PufferPanel Installer - Version $version"
-        echo "Optional parameters: "
-        echo "-D        | If set, will install the latest dev version of the panel"
-        echo "-u [user] | Sets the user/group owner of the panel files"
-        echo "-t        | Checks if the depedencies are installed without installing panel"
-        echo "-l        | Skips language building"
-        exit;
+        print "PufferPanel Installer - Version $version"
+        print "Optional parameters: "
+        print "-D        | If set, will install the latest dev version of the panel"
+        print "-u [user] | Sets the user/group owner of the panel files"
+        print "-t        | Checks if the depedencies are installed without installing panel"
+        print "-l        | Skips language building"
+        exit 0
         ;;
     D)
         usedev=true
@@ -93,15 +103,15 @@ if [ -n "${inputFinalPath}" ]; then
     finalpath=${inputFinalPath}
 fi
 
-echo "PufferPanel Installer - Version $version"
-echo "------"
-echo "Install path: ${finalpath}"
-echo "Temp path: ${installpath}"
-echo "Using dev: ${usedev}"
-echo "Testing only: ${test}"
-echo "Skipping languages: ${skiplang}"
-echo "------"
-echo "Checking dependencies:"
+print "PufferPanel Installer - Version $version"
+print "------"
+print "Install path: ${finalpath}"
+print "Temp path: ${installpath}"
+print "Using dev: ${usedev}"
+print "Testing only: ${test}"
+print "Skipping languages: ${skiplang}"
+print "------"
+print "Checking dependencies:"
 
 canInstall=true
 
@@ -124,9 +134,9 @@ checkInstall mysql MySQL-client
 if $phpInstalled; then
     result=$(php -r 'exit (version_compare(PHP_VERSION, "5.5.0") < 0 ? "1" : "0");');
     if [ "$result" -eq "0" ]; then
-        echo "PHP 5.5.0+: [${green}Installed${normal}]";
+        print "PHP 5.5.0+: [${green}Installed${normal}]"
     else
-        echo "PHP 5.5.0+: [${red}Not Installed${normal}]";
+        print "PHP 5.5.0+: [${red}Not Installed${normal}]"
         canInstall=false
     fi
 
@@ -137,14 +147,14 @@ if $phpInstalled; then
 EOF`
         result=$phpcmd;
         if [ "$result" -ne "0" ]; then
-            echo "PHP-${i}: [${green}Installed${normal}]";
+            print "PHP-${i}: [${green}Installed${normal}]"
         else
-            echo "PHP-${i}: [${red}Not Installed${normal}]";
+            print "PHP-${i}: [${red}Not Installed${normal}]"
             canInstall=false
         fi
     done
 else
-    echo "Since PHP-cli is not installed, assuming no extensions are installed"
+    print "${yellow}Since PHP-cli is not installed, assuming no extensions are installed"
     canInstall=false
 fi
 
@@ -152,19 +162,19 @@ echo "------"
 
 if ${canInstall}; then
     if ${test}; then
-        echo "${green}All dependencies are validated${normal}"
-        exit;
+        print "${green}All dependencies are validated"
+        exit 0
     else
-        echo "${green}All dependencies are installed, processing with installation${normal}";
+        print "${green}All dependencies are installed, processing with installation"
     fi
 else
-    echo "${red}Please ensure all dependencies are installed${normal}";
-    exit;
+    print "${red}Please ensure all dependencies are installed"
+    exit 1
 fi
 
-echo "-----"
-echo "Preparing MySQL connection"
-echo "${red}For this step, please use either root or an account with database creation and GRANT${normal}"
+print "-----"
+print "Preparing MySQL connection"
+print "${red}For this step, use either root or an account with database creation and GRANT"
 
 echo -n "MySQL Host [${mysqlhost}]: "
 read inputmysqlhost
@@ -191,13 +201,13 @@ while ${notValid}; do
     if mysql -h ${mysqlhost} -u ${mysqluser} -p${mysqlpass} -e "exit"; then
         notValid=false
     else
-        echo "${red}Database connection could not be established${normal}"
+        print "${red}Database connection could not be established"
     fi
 done;
 
 echo ""
 echo "-----"
-echo "Preparing Site configuration"
+print "Preparing Site configuration"
 echo -n "Enter company name [${companyname}]: "
 read inputcompanyname
 if [ -n "${inputcompanyname}" ]; then
@@ -211,8 +221,8 @@ if [ -n "${inputsiteurl}" ]; then
 fi
 siteurl=${siteurl#*://}
 
-echo "-----"
-echo "Preparing admin account"
+print "-----"
+print "Preparing admin account"
 echo -n "Username [${adminname}]: "
 read inputadminname
 if [ -n "${inputadminname}" ]; then
@@ -227,30 +237,30 @@ fi
 
 echo -n "Password: "
 read -s adminpass
-echo ""
+print ""
 
-echo "-----"
-echo "${green}Configuration options complete, beginning installation process${normal}"
+print "-----"
+print "${green}Configuration options complete, beginning installation process${normal}"
 
-echo "-----"
-echo "Cloning PufferPanel to ${installpath}"
+print "-----"
+print "Cloning PufferPanel to ${installpath}"
 
 git clone https://github.com/PufferPanel/PufferPanel.git ${installpath}
 validateCommand
 
-echo "-----"
+print "-----"
 cd $installpath
 ppversion=$(git describe --abbrev=0 --tags)
 if ${usedev}; then
-    echo "Using dev version"
+    print "Using dev version"
 else
-    echo "Checking out ${ppversion}"
+    print "Checking out ${ppversion}"
     git checkout tags/${ppversion}
     validateCommand
 fi
 
-echo "-----"
-echo "Installing Composer"
+print "-----"
+print "Installing Composer"
 curl -o ${installpath}/composer.phar https://getcomposer.org/download/1.0.0-alpha10/composer.phar
 validateCommand
 php composer.phar install
@@ -258,26 +268,26 @@ validateCommand
 
 cd $DIR
 
-echo "-----"
-echo "Executing panel version installer"
+print "-----"
+print "Executing panel version installer"
 
 php -f ${installpath}/install/install.php host="$mysqlhost" port="3306" user="$mysqluser" pass="$mysqlpass" companyName="$companyname" siteUrl="$siteurl" adminName="$adminname" adminEmail="$adminemail" adminPass="$adminpass" installDir="$installpath"
 if [ $? -ne 0 ]; then
-    echo "${red}An error occured while installing, halting${normal}";
+    print "${red}An error occured while installing, halting"
     revertInstall
-    exit
+    exit 1
 fi
 
-echo "-----"
+print "-----"
 if $skiplang; then
-    echo "Skipping language building"
+    print "Skipping language building"
 else
-    echo "Building language files"
+    print "Building language files"
     bash ${installpath}/tools/language-builder.sh -p ${installpath}
 fi
 
-echo "-----"
-echo "Finishing install"
+print "-----"
+print "Finishing install"
 mkdir -p ${finalpath}
 
 shopt -s dotglob
@@ -286,16 +296,15 @@ chmod -R 777 ${finalpath}/src/logs
 
 getent passwd ${webuser} >/dev/null 2>&1
 if [ $? -eq 0 ]; then
-  echo "Chowning files to ${webuser} user"
+  print "Chowning files to ${webuser} user"
   chown -R ${webuser}:${webuser} $finalpath
   if [ $? -ne 0 ]; then
-    echo "${red}Could not chown ${finalpath} to ${webuser}, please do this manually${normal}"
+    print "${red}Could not chown ${finalpath} to ${webuser}, please do this manually"
   fi
 else
-  echo "${red}${webuser} user not found, cannot chown to correct user${normal}"
+  print "${red}${webuser} user not found, cannot chown to correct user"
 fi
 
-echo "${green}PufferPanel has installed successfully."
-echo "If the above chown is not the correct user or did not work, please manually chown the ${finalpath} folder${normal}"
-echo "{$normal}"
-exit
+print "${green}PufferPanel has installed successfully."
+print "If the above chown is not the correct user or did not work, please manually chown the ${finalpath} folder"
+exit 0
