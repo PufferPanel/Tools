@@ -26,7 +26,7 @@ adminname="admin"
 adminemail="admin@examplehost.com"
 
 #Check distro and set proper webuser
-distro=`. /etc/os-release 2>/dev/null; echo $ID`
+distro=$(. /etc/os-release 2>/dev/null; echo $ID)
 if [ "${distro}" = "ubuntu" ]; then
     webuser="www-data"
 elif [ "${distro}" = "debian" ]; then
@@ -296,15 +296,14 @@ chmod -R 777 ${finalpath}/src/logs
 
 getent passwd ${webuser} >/dev/null 2>&1
 if [ $? -eq 0 ]; then
-  print "Chowning files to ${webuser} user"
+  print "Chowning files to ${webuser}"
   chown -R ${webuser}:${webuser} $finalpath
   if [ $? -ne 0 ]; then
     print "${red}Could not chown ${finalpath} to ${webuser}, please do this manually"
   fi
 else
-  print "${red}${webuser} user not found, cannot chown to correct user"
+  print "${red}${webuser} user not found, cannot chown"
 fi
 
 print "${green}PufferPanel has installed successfully."
-print "If the above chown is not the correct user or did not work, please manually chown the ${finalpath} folder"
 exit 0
