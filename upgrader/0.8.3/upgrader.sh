@@ -6,7 +6,7 @@ normal="\e[0m"
 directory="/srv/PufferPanel/"
 mysqlhost="localhost"
 mysqluser="root"
-temp=$(mktemp -d)
+temp=$(mktemp /tmp/pp-XXXXXXXX.sql)
 
 function validateCommand() {
     if [ $? -ne 0 ]; then
@@ -75,7 +75,6 @@ read sendmailToken
 validateCommand
 
 echo "
-START TRANSACTION;
 USE pufferpanel;
 
 -- Update our Tables
@@ -104,11 +103,11 @@ DELETE FROM acp_settings WHERE setting_ref = 'sendgrid_api_key';
 DELETE FROM acp_settings WHERE setting_ref = 'mailgun_api_key';
 DELETE FROM acp_settings WHERE setting_ref = 'force_online';
 DELETE FROM acp_settings WHERE setting_ref = 'use_api';
-" > ${temp}/commands.sql
+" > ${temp}
 validateCommand
 
 echo "Updating MySQL Records..."
-mysql --host=${mysqlhost} --user=${mysqluser} --password=${mysqlpass} --force < ${temp}/commands.sql
+mysql --host=${mysqlhost} --user=${mysqluser} --password=${mysqlpass} --force < ${temp}
 validateCommand
 
 cd ${directory}
@@ -136,6 +135,5 @@ validateCommand
 php composer.phar update
 validateCommand
 
-mysql --host=${mysqlhost} --user=${mysqluser} --password=${mysqlpass} -e "COMMIT;" pufferpanel
 echo -e "Upgrade Completed..."
 exit 0
