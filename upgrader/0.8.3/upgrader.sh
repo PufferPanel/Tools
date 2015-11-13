@@ -3,6 +3,9 @@
 
 red="\e[31m"
 normal="\e[0m"
+directory="/srv/PufferPanel/"
+mysqlhost="localhost"
+mysqluser="root"
 
 function validateCommand() {
     if [ $? -ne 0 ]; then
@@ -25,25 +28,25 @@ sleep 20
 
 echo -e "Welcome to the PufferPanel Upgrader. Please provide some information below so we can continue..."
 
-echo -n "PufferPanel Directory [/srv/PufferPanel/]: "
-read directory
-if [ -n "${directory}" ]; then
-    directory="/srv/PufferPanel/"
+echo -n "PufferPanel Directory [${directory}]: "
+read inputdirectory
+if [ -n "${inputdirectory}" ]; then
+    directory=${inputdirectory}
 fi
 
 notValid=true
 while ${notValid}; do
 
-    echo -n "MySQL Host [localhost]: "
-    read mysqlhost
-    if [ -n "${mysqlhost}" ]; then
-        mysqlhost="localhost"
+    echo -n "MySQL Host [${mysqlhost}]: "
+    read inputmysqlhost
+    if [ -n "${inputmysqlhost}" ]; then
+        mysqlhost=${inputmysqlhost}
     fi
 
-    echo -n "MySQL User [root]: "
-    read mysqluser
-    if [ -n "${mysqlhost}" ]; then
-        mysqluser="root"
+    echo -n "MySQL User [${mysqluser}]: "
+    read inputmysqluser
+    if [ -n "${inputmysqluser}" ]; then
+        mysqluser=${inputmysqluser}
     fi
 
     echo -n "MySQL Password: "
