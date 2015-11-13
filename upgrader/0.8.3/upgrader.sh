@@ -1,13 +1,14 @@
 #!/bin/bash
 # Upgrades from 0.8.2 to 0.8.3
 
-red=$(tput setf 4)
+red="\e[31m"
+normal="\e[0m"
 directory="/srv/PufferPanel/"
 mysqlhost="localhost"
 
 function validateCommand() {
     if [ $? -ne 0 ]; then
-        echo -e "${red}An error occured while upgrading, halting"
+        echo -e "${red}An error occured while upgrading, halting${normal}"
         exit 1
     fi
 }
@@ -45,7 +46,7 @@ while ${notValid}; do
     if mysql -h ${mysqlhost} -u ${mysqluser} -p${mysqlpass} -e "exit"; then
         notValid=false
     else
-        echo -e "${red}Database connection could not be established"
+        echo -e "${red}Database connection could not be established${normal}"
     fi
 done;
 
