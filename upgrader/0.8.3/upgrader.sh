@@ -22,6 +22,9 @@ while getopts ":h:" opt; do
     esac
 done
 
+echo -e "${red}WARNING:${normal} You should make a backup of your database and files before continuing. Press CTRL+C now to exit and do this. We will continue in 20 seconds otherwise..."
+sleep 20
+
 echo -e "Welcome to the PufferPanel Upgrader. Please provide some information below so we can continue..."
 
 echo -n "PufferPanel Directory [${directory}]: "
