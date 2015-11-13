@@ -102,6 +102,9 @@ validateCommand
 git fetch
 validateCommand
 
+git stash
+validateCommand
+
 git checkout tags/0.8.3
 validateCommand
 
