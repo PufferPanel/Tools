@@ -50,6 +50,10 @@ while ${notValid}; do
     fi
 done;
 
+echo -n "If you are using an email method OTHER THAN PHP please enter your API Token: "
+read sendmailToken
+validateCommand
+
 temp=$(mktemp -d)
 validateCommand
 
@@ -77,6 +81,7 @@ INSERT INTO plugins VALUES (NULL, 'd4bbcd72-a220-427a-a361-be2bfd944f1e', 'pocke
 -- Update Settings for New Email Methods
 UPDATE acp_settings SET setting_ref = 'transport_email' WHERE setting_ref = 'sendmail_email';
 UPDATE acp_settings SET setting_ref = 'transport_method' WHERE setting_ref = 'sendmail_method';
+INSERT INTO acp_settings VALUES (NULL, 'transport_token', '${sendmailToken}');
 
 -- Clean Up
 DELETE FROM acp_settings WHERE setting_ref = 'mandrill_api_key';
@@ -90,13 +95,6 @@ validateCommand
 
 echo "Updating MySQL Records..."
 mysql --host=${mysqlhost} --user=${mysqluser} --password=${mysqlpass} < commands.sql
-validateCommand
-
-echo -n "If you are using an email method OTHER THAN PHP please enter your API Token: "
-read sendmailToken
-validateCommand
-
-mysql --host=${mysqlhost} --user=${mysqluser} --password=${mysqlpass} -e "UPDATE acp_settings SET setting_val = '${sendmailToken}' WHERE setting_ref = 'transport_token'" pufferpanel
 validateCommand
 
 cd ${directory}
