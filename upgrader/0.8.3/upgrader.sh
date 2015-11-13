@@ -7,7 +7,7 @@ mysqlhost="localhost"
 
 function validateCommand() {
     if [ $? -ne 0 ]; then
-        echo -e "${red}An error occured while installing, halting"
+        echo -e "${red}An error occured while upgrading, halting"
         exit 1
     fi
 }
