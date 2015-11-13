@@ -6,10 +6,12 @@ normal="\e[0m"
 directory="/srv/PufferPanel/"
 mysqlhost="localhost"
 mysqluser="root"
+temp=$(mktemp -d)
 
 function validateCommand() {
     if [ $? -ne 0 ]; then
         echo -e "${red}An error occured while upgrading, halting${normal}"
+        rm -rf ${temp}
         exit 1
     fi
 }
@@ -70,9 +72,6 @@ done;
 echo
 echo -n "If you are using an email method OTHER THAN PHP please enter your API Token: "
 read sendmailToken
-validateCommand
-
-temp=$(mktemp -d)
 validateCommand
 
 echo "
