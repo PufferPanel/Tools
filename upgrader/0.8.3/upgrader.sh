@@ -75,6 +75,7 @@ read sendmailToken
 validateCommand
 
 echo "
+START TRANSACTION;
 USE pufferpanel;
 
 -- Update our Tables
@@ -134,5 +135,6 @@ validateCommand
 php composer.phar update
 validateCommand
 
+mysql --host=${mysqlhost} --user=${mysqluser} --password=${mysqlpass} -e "COMMIT;" pufferpanel
 echo -e "Upgrade Completed..."
 exit 0
