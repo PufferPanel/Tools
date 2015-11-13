@@ -3,8 +3,6 @@
 
 red="\e[31m"
 normal="\e[0m"
-directory="/srv/PufferPanel/"
-mysqlhost="localhost"
 
 function validateCommand() {
     if [ $? -ne 0 ]; then
@@ -27,23 +25,27 @@ sleep 20
 
 echo -e "Welcome to the PufferPanel Upgrader. Please provide some information below so we can continue..."
 
-echo -n "PufferPanel Directory [${directory}]: "
+echo -n "PufferPanel Directory [/srv/PufferPanel/]: "
 read directory
 if [ -n "${directory}" ]; then
-    directory=${directory}
+    directory="/srv/PufferPanel/"
 fi
-
-echo -n "MySQL Host [${mysqlhost}]: "
-read mysqlhost
-if [ -n "${mysqlhost}" ]; then
-    mysqlhost=${mysqlhost}
-fi
-
-echo -n "MySQL User: "
-read mysqluser
 
 notValid=true
 while ${notValid}; do
+
+    echo -n "MySQL Host [localhost]: "
+    read mysqlhost
+    if [ -n "${mysqlhost}" ]; then
+        mysqlhost="localhost"
+    fi
+
+    echo -n "MySQL User [root]: "
+    read mysqluser
+    if [ -n "${mysqlhost}" ]; then
+        mysqluser="root"
+    fi
+
     echo -n "MySQL Password: "
     read -s mysqlpass
     if mysql -h ${mysqlhost} -u ${mysqluser} -p${mysqlpass} -e "exit"; then
@@ -51,6 +53,7 @@ while ${notValid}; do
     else
         echo -e "${red}Database connection could not be established${normal}"
     fi
+
 done;
 
 echo -n "If you are using an email method OTHER THAN PHP please enter your API Token: "
