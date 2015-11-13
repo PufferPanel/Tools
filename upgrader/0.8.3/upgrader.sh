@@ -67,6 +67,7 @@ while ${notValid}; do
 
 done;
 
+echo
 echo -n "If you are using an email method OTHER THAN PHP please enter your API Token: "
 read sendmailToken
 validateCommand
@@ -117,7 +118,13 @@ git fetch
 validateCommand
 
 git stash
-validateCommand
+# No Email Set, set one.
+if [ $? -ne 0 ]; then
+    currentUser=$(whoami)
+    currentHost=$HOSTNAME
+    git config user.email "${currentUser}@${curentHost}"
+    git config user.name "${currentUser}"
+fi
 
 git checkout tags/0.8.3
 validateCommand
