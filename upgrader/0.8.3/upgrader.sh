@@ -108,7 +108,7 @@ DELETE FROM acp_settings WHERE setting_ref = 'use_api';
 validateCommand
 
 echo "Updating MySQL Records..."
-mysql --host=${mysqlhost} --user=${mysqluser} --password=${mysqlpass} < ${temp}/commands.sql
+mysql --host=${mysqlhost} --user=${mysqluser} --password=${mysqlpass} --force < ${temp}/commands.sql
 validateCommand
 
 cd ${directory}
