@@ -96,6 +96,17 @@ UPDATE acp_settings SET setting_ref = 'transport_email' WHERE setting_ref = 'sen
 UPDATE acp_settings SET setting_ref = 'transport_method' WHERE setting_ref = 'sendmail_method';
 INSERT INTO acp_settings VALUES (NULL, 'transport_token', '${sendmailToken}');
 
+-- New Table
+DROP TABLE IF EXISTS autodeploy;
+CREATE TABLE autodeploy (
+  id mediumint(10) unsigned NOT NULL AUTO_INCREMENT,
+  node mediumint(10) unsigned NOT NULL,
+  code char(36) NOT NULL DEFAULT '',
+  expires int(10) unsigned NOT NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB;
+
+
 -- Clean Up
 DELETE FROM acp_settings WHERE setting_ref = 'mandrill_api_key';
 DELETE FROM acp_settings WHERE setting_ref = 'postmark_api_key';
