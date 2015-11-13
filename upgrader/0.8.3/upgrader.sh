@@ -124,6 +124,7 @@ if [ $? -ne 0 ]; then
     currentHost=$HOSTNAME
     git config user.email "${currentUser}@${curentHost}"
     git config user.name "${currentUser}"
+    git stash
 fi
 
 git checkout tags/0.8.3
