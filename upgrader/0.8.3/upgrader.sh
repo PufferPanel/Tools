@@ -57,10 +57,6 @@ validateCommand
 temp=$(mktemp -d)
 validateCommand
 
-echo "Performing actions inside temporary directory (${temp})"
-cd temp
-validateCommand
-
 echo "
 USE pufferpanel;
 
@@ -90,11 +86,11 @@ DELETE FROM acp_settings WHERE setting_ref = 'sendgrid_api_key';
 DELETE FROM acp_settings WHERE setting_ref = 'mailgun_api_key';
 DELETE FROM acp_settings WHERE setting_ref = 'force_online';
 DELETE FROM acp_settings WHERE setting_ref = 'use_api';
-" > commands.sql
+" > ${temp}/commands.sql
 validateCommand
 
 echo "Updating MySQL Records..."
-mysql --host=${mysqlhost} --user=${mysqluser} --password=${mysqlpass} < commands.sql
+mysql --host=${mysqlhost} --user=${mysqluser} --password=${mysqlpass} < ${temp}/commands.sql
 validateCommand
 
 cd ${directory}
