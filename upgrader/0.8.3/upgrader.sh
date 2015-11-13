@@ -68,7 +68,7 @@ ALTER TABLE plugins ADD default_startup text AFTER description;
 UPDATE plugins SET default_startup = '-Xms\${memory}M -server -jar \${jar}' WHERE slug = 'minecraft';
 UPDATE plugins SET default_startup = '-Xms\${memory}M -server -jar \${jar}' WHERE slug = 'minecraft-pre';
 UPDATE plugins SET default_startup = '-game \${game} -console +map \${map} -maxplayers \${players} -norestart' WHERE slug = 'srcds';
-UPDATE plugins SET default_startup = '-Xms\${memory}M -server -jar \${jar}' WHERE slug = 'minecraft';
+UPDATE plugins SET default_startup = '-Xms\${memory}M -server -jar \${jar}' WHERE slug = 'bungeecord';
 
 -- Add PocketMine-MP
 INSERT INTO plugins VALUES (NULL, 'd4bbcd72-a220-427a-a361-be2bfd944f1e', 'pocketmine', 'PocketMine-MP', 'PocketMine-MP is a server software for Minecraft PE (Pocket Edition). It has a Plugin API that enables a developer to extend it and add new features, or change default ones.', '--disable-ansi --no-wizard', '{\"build_params\":{\"name\":\"build_params\",\"description\":\"Build parameters used for the server. Use \'-v <VERSION>\' where version can be stable, beta, or development.\",\"required\":false,\"editable\":false,\"default\":\"-v stable\"}}');
