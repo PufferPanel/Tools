@@ -140,6 +140,10 @@ fi
 git checkout tags/0.8.3
 validateCommand
 
+# Add push that fixes an add server bug.
+git cherry-pick 2885f9f68
+validateCommand
+
 php composer.phar self-update
 validateCommand
 
