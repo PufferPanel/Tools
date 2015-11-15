@@ -257,6 +257,12 @@ else
     print "Checking out ${ppversion}"
     git checkout tags/${ppversion}
     validateCommand
+    
+    if [ ${ppversion} -eq "0.8.3" ]; then
+        print "Applying bug patch 2885f9f68"
+        git cherry-pick 2885f9f68
+        validateCommand
+    fi
 fi
 
 print "-----"
