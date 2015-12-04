@@ -59,14 +59,6 @@ function revertInstall() {
     rm -rf ${installpath}
 }
 
-#Redirect logs to a file as well as stdout
-exec &> >(tee "/tmp/ppinstaller.log")
-
-if [ $? -ne 0 ]; then
-    print "${red}This was not executed using bash, please use bash for proper support"
-    exit 1
-fi
-
 while getopts "h?Dtu:l" opt; do
     case "$opt" in
     h)
