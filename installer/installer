@@ -298,6 +298,7 @@ else
 fi
 
 print "${green}PufferPanel has installed successfully."
+
 shopt -s nocasematch
 echo -n "${green}Would you like to thanks us? Each thanks gives us the motivation to provide this software to you. [Y/n]${normal}"
 read thanks
