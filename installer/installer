@@ -284,7 +284,7 @@ mkdir -p ${finalpath}
 
 shopt -s dotglob
 mv ${installpath}/* ${finalpath}
-chmod -R 777 ${finalpath}/src/logs
+chmod -R 777 ${finalpath}/logs
 
 getent passwd ${webuser} >/dev/null 2>&1
 if [ $? -eq 0 ]; then
@@ -300,7 +300,7 @@ fi
 print "${green}PufferPanel has installed successfully."
 
 shopt -s nocasematch
-echo -n "${green}Would you like to thanks us? Each thanks gives us the motivation to provide this software to you. [Y/n]${normal}"
+echo -n "${green}Would you like to thanks us? Each thanks gives us the motivation to provide this software to you. [Y/n]: ${normal}"
 read thanks
 if [[ "${thanks}" == "Y" ]] || [[ "${thanks}" == "" ]]; then
     curl -X POST https://thankyou.pufferpanel.com >/dev/null 2>&1
